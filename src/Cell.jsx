@@ -12,7 +12,7 @@ export default function Cell({ y, x, cell }) {
                 focused && "outline outline-blue-600 outline-3 rounded"
             } border border-opacity-20 border-white hover:bg-gray-700 ${
                 cell.type === "number" && "type-number"
-            } relative`}
+            } ${cell.type === "special" && "type-special"} relative`}
         >
             <div
                 className={`min-h-9 min-w-24 w-full px-5 py-2 inline`}

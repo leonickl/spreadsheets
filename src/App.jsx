@@ -92,6 +92,12 @@ export default function App() {
                 });
             }
 
+            if (event.key === "*") {
+                updateTable(cursor.y, cursor.x, {
+                    type: cell.type === "special" ? "string" : "special",
+                });
+            }
+
             if (event.key === "b" || event.key === "B") {
                 updateTable(cursor.y, cursor.x, { bold: !cell?.bold });
             }
