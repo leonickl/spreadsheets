@@ -86,6 +86,12 @@ export default function App() {
                 removeFromTable(cursor.y, cursor.x);
             }
 
+            if (event.key === "#") {
+                updateTable(cursor.y, cursor.x, {
+                    type: cell.type === "number" ? "string" : "number",
+                });
+            }
+
             if (event.key === "b" || event.key === "B") {
                 updateTable(cursor.y, cursor.x, { bold: !cell?.bold });
             }
@@ -100,6 +106,10 @@ export default function App() {
                 updateTable(cursor.y, cursor.x, {
                     italic: !cell?.italic,
                 });
+            }
+
+            if (event.key === "s" || event.key === "S") {
+                exportTable();
             }
         };
 
