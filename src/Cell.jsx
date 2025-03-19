@@ -13,11 +13,9 @@ export default function Cell({ y, x, cell }) {
             } border border-opacity-20 border-white hover:bg-gray-700 ${
                 cell.type === "number" && "type-number"
             } ${cell.type === "special" && "type-special"} relative`}
+            onClick={() => setCursor({ y, x })}
         >
-            <div
-                className={`min-h-9 min-w-24 w-full px-5 py-2 inline`}
-                onClick={() => setCursor({ y, x })}
-            >
+            <div className={`min-h-9 min-w-24 w-full px-5 py-2 inline`}>
                 <CellData cell={cell} />
             </div>
         </td>
