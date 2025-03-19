@@ -1,7 +1,11 @@
 export default function CellData({ cell }) {
-    if (cell.bold) {
-        return <b>{cell.data}</b>;
-    }
-
-    return <span>{cell.data}</span>;
+    return (
+        <span
+            className={`${cell.bold && "font-bold"}
+                ${cell.underline && "underline"}
+                ${cell.italic && "italic"}`}
+        >
+            {cell.data}
+        </span>
+    );
 }

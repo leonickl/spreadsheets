@@ -89,6 +89,18 @@ export default function App() {
             if (event.key === "b" || event.key === "B") {
                 updateTable(cursor.y, cursor.x, { bold: !cell?.bold });
             }
+
+            if (event.key === "u" || event.key === "U") {
+                updateTable(cursor.y, cursor.x, {
+                    underline: !cell?.underline,
+                });
+            }
+
+            if (event.key === "i" || event.key === "I") {
+                updateTable(cursor.y, cursor.x, {
+                    italic: !cell?.italic,
+                });
+            }
         };
 
         document.addEventListener("keydown", handleKeyPress);
