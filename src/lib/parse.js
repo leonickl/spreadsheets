@@ -17,8 +17,7 @@ export default function parse(formula) {
 
         function applyOperator() {
             const op = operators.pop();
-
-            if (op === "[") return;
+            if (op === "[" || op === "(") return;
 
             const right = output.pop();
             const left = output.pop();
@@ -37,7 +36,7 @@ export default function parse(formula) {
 
             while (output.length && output[output.length - 1] !== "(") {
                 const item = output.pop();
-                if (item === ",") {
+                if (item.type === "comma") {
                     args.unshift(
                         temp.length === 1
                             ? temp[0]
@@ -67,7 +66,7 @@ export default function parse(formula) {
 
             while (output.length && output[output.length - 1] !== "[") {
                 const item = output.pop();
-                if (item === ",") {
+                if (item.type === "comma") {
                     elements.unshift(
                         temp.length === 1
                             ? temp[0]
@@ -119,9 +118,7 @@ export default function parse(formula) {
                 ) {
                     applyOperator();
                 }
-
                 operators.pop(); // Remove "("
-
                 if (
                     operators.length &&
                     /^[a-z]+$/.test(operators[operators.length - 1])
@@ -129,20 +126,7 @@ export default function parse(formula) {
                     applyFunction();
                 }
             } else if (token === ",") {
-                if (
-                    operators.length &&
-                    operators[operators.length - 1] === "["
-                ) {
-                    output.push(",");
-                } else {
-                    while (
-                        operators.length &&
-                        operators[operators.length - 1] !== "(" &&
-                        operators[operators.length - 1] !== "["
-                    ) {
-                        applyOperator();
-                    }
-                }
+                output.push({ type: "comma" });
             } else if (token === "[") {
                 operators.push("[");
             } else if (token === "]") {
@@ -151,7 +135,10 @@ export default function parse(formula) {
         }
 
         while (operators.length) {
-            if (operators[operators.length - 1] === "[") {
+            if (
+                operators[operators.length - 1] === "[" ||
+                operators[operators.length - 1] === "("
+            ) {
                 operators.pop();
             } else {
                 applyOperator();
@@ -163,7 +150,7 @@ export default function parse(formula) {
 
     const tokens = tokenize(formula.trim());
 
-    log(tokens)
+    log(tokens);
 
     return parseTokens(tokens);
 }
