@@ -1,5 +1,5 @@
-export default function log(value) {
-    console.log(value);
+export default function log(...value) {
+    console.log(...value);
 
-    return value;
+    return value[0];
 }

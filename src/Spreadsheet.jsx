@@ -20,7 +20,7 @@ export default function Spreadsheet() {
                             className="border border-white border-opacity-20 bg-gray-800"
                             key={i}
                         >
-                            <div className="min-h-9 min-w-24 px-5 py-2">
+                            <div className="min-h-9 min-w-24 px-5 py-2 select-none">
                                 {letter(i)}
                             </div>
                         </th>
@@ -32,7 +32,7 @@ export default function Spreadsheet() {
                 {grid(table, cursor).map((row, i) => (
                     <tr key={i} className="relative">
                         <th className="border border-white border-opacity-20 bg-gray-800 sticky left-0">
-                            <div className="min-h-9 min-w-24 px-5 py-2">
+                            <div className="min-h-9 min-w-24 px-5 py-2 select-none">
                                 {i}
                             </div>
                         </th>

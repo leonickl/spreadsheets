@@ -4,36 +4,57 @@ import parse from "./parse.js";
 import { isInt, isNumeric } from "./types.js";
 
 function functions() {
+    function listOr(f) {
+        return (list) => (Array.isArray(list) ? f(list) : "{no array}");
+    }
+
     function sum(list) {
         return list?.reduce?.((acc, curr) => acc + curr, 0);
     }
+
     function prod(list) {
         return list?.reduce?.((acc, curr) => acc * curr, 1);
     }
+
     function mean(list) {
-        console.log({ list });
         return sum(list) / list.length;
     }
+
     function min(list) {
         return Math.min(...list);
     }
+
     function max(list) {
         return Math.max(...list);
     }
+
     function sin(x) {
         return Math.sin(x);
     }
+
     function cos(x) {
         return Math.cos(x);
     }
+
     function exp(x) {
         return Math.exp(x);
     }
+
     function log(x) {
         return Math.log(x);
     }
 
-    return { sum, prod, mean, min, max, sin, cos, exp, log };
+    return {
+        sum: listOr(sum),
+        prod: listOr(prod),
+        mean: listOr(mean),
+        min: listOr(min),
+        max: listOr(max),
+        sin,
+        cos,
+        exp,
+        log,
+    };
 }
 
 function operator(left, op, right) {
@@ -46,7 +67,6 @@ function operator(left, op, right) {
 export default function evaluate(formula, table, decimals) {
     function evaluateFormula(formula) {
         if (!formula) {
-            log("empty formula");
             return null;
         }
 
@@ -58,13 +78,29 @@ export default function evaluate(formula, table, decimals) {
             const f = functions()[formula.name];
 
             if (!f) {
-                log("unknown function", formula);
                 return "{unknown function}";
             }
 
             const result = f(...formula.args.map(evaluateFormula));
 
             return result;
+        }
+
+        if (formula.type === "cell") {
+            const [_, x, y] = formula.value.match(/^([A-Z]+)(\d+)$/);
+
+            const cell = table.find(
+                (cell) => cell.x == index(x) && cell.y == y
+            );
+
+            if (!cell) {
+                log("cell not found");
+                return null;
+            }
+
+            return cell.type === "formula"
+                ? evaluateFormula(parse(cell.data))
+                : parseFloat(cell.data);
         }
 
         if (formula.type === "range") {
@@ -86,6 +122,8 @@ export default function evaluate(formula, table, decimals) {
                         : parseFloat(cell.data)
                 );
 
+            log({ list });
+
             return list;
         }
 
@@ -94,6 +132,7 @@ export default function evaluate(formula, table, decimals) {
         }
 
         if (formula.type === "array") {
+            log({ formula });
             return formula.elements.map(evaluateFormula);
         }
 
@@ -120,7 +159,7 @@ export default function evaluate(formula, table, decimals) {
     const result = evaluateFormula(parsed);
 
     if (isNumeric(result) && !isInt(result)) {
-        return result.toFixed(decimals ?? 3);
+        return result.toFixed(decimals ?? 2);
     }
 
     return result;

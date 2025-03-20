@@ -18,7 +18,9 @@ export default function Cell({ y, x, cell }) {
             onMouseDown={() => setCursor({ y, x })}
             onDoubleClick={() => inputRef.current.focus()}
         >
-            <div className={`min-h-9 min-w-24 w-full px-5 py-2 inline`}>
+            <div
+                className={`min-h-9 min-w-24 w-full px-5 py-2 inline select-none`}
+            >
                 <CellData cell={cell} />
             </div>
         </td>
