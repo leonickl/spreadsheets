@@ -15,3 +15,7 @@ export function isURL(str) {
 export function isNumeric(value) {
     return !isNaN(value) && !isNaN(parseFloat(value));
 }
+
+export function isInt(value) {
+    return parseInt(value) == value;
+}

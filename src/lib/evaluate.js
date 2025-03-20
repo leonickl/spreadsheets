@@ -1,43 +1,127 @@
-import { index } from "./grid";
+import { index } from "./grid.js";
+import log from "./log.js";
+import parse from "./parse.js";
+import { isInt, isNumeric } from "./types.js";
+
+function functions() {
+    function sum(list) {
+        return list?.reduce?.((acc, curr) => acc + curr, 0);
+    }
+    function prod(list) {
+        return list?.reduce?.((acc, curr) => acc * curr, 1);
+    }
+    function mean(list) {
+        console.log({ list });
+        return sum(list) / list.length;
+    }
+    function min(list) {
+        return Math.min(...list);
+    }
+    function max(list) {
+        return Math.max(...list);
+    }
+    function sin(x) {
+        return Math.sin(x);
+    }
+    function cos(x) {
+        return Math.cos(x);
+    }
+    function exp(x) {
+        return Math.exp(x);
+    }
+    function log(x) {
+        return Math.log(x);
+    }
+
+    return { sum, prod, mean, min, max, sin, cos, exp, log };
+}
+
+function operator(left, op, right) {
+    if (op === "+") return left + right;
+    if (op === "-") return left - right;
+    if (op === "*") return left * right;
+    if (op === "/") return left / right;
+}
 
 export default function evaluate(formula, table, decimals) {
-    if (!formula) return null;
+    function evaluateFormula(formula) {
+        if (!formula) {
+            log("empty formula");
+            return null;
+        }
 
-    const match = formula.match(/([a-z]+) ([A-Z]+)(\d+):([A-Z]+)(\d+) ?(\d*)/);
+        if (formula.type === "number") {
+            return parseFloat(formula.value);
+        }
 
-    if (!match) return "ERROR";
+        if (formula.type === "function") {
+            const f = functions()[formula.name];
 
-    const [_, fun, _x1, _y1, _x2, _y2] = match;
+            if (!f) {
+                log("unknown function", formula);
+                return "{unknown function}";
+            }
 
-    const x1 = index(_x1);
-    const y1 = parseInt(_y1, 10);
-    const x2 = index(_x2);
-    const y2 = parseInt(_y2, 10);
+            const result = f(...formula.args.map(evaluateFormula));
 
-    const values = table
-        .filter(
-            (cell) =>
-                cell.x >= x1 && cell.x <= x2 && cell.y >= y1 && cell.y <= y2
-        )
-        .map((cell) =>
-            cell.type === "formula" ? evaluate(cell.data, table, decimals ?? 3) : cell.data
-        )
-        .map(parseFloat)
-        .filter((num) => !isNaN(num));
+            return result;
+        }
 
-    console.log(values);
+        if (formula.type === "range") {
+            const [_, x1, y1, x2, y2] = formula.value.match(
+                /^([A-Z]+)(\d+):([A-Z]+)(\d+)$/
+            );
 
-    function round(result) {
+            const list = table
+                .filter(
+                    (cell) =>
+                        cell.x >= index(x1) &&
+                        cell.x <= index(x2) &&
+                        cell.y >= parseInt(y1) &&
+                        cell.y <= parseInt(y2)
+                )
+                .map((cell) =>
+                    cell.type === "formula"
+                        ? evaluateFormula(parse(cell.data))
+                        : parseFloat(cell.data)
+                );
+
+            return list;
+        }
+
+        if (formula.type === "invalid") {
+            return "{invalid syntax}";
+        }
+
+        if (formula.type === "array") {
+            return formula.elements.map(evaluateFormula);
+        }
+
+        if (formula.type === "operation") {
+            return operator(
+                evaluateFormula(formula.left),
+                formula.operator,
+                evaluateFormula(formula.right)
+            );
+        }
+
+        return "{invalid type}";
+    }
+
+    if (!formula) {
+        log("empty formula");
+        return null;
+    }
+
+    const parsed = parse(formula);
+
+    log(parsed);
+
+    const result = evaluateFormula(parsed);
+
+    if (isNumeric(result) && !isInt(result)) {
         return result.toFixed(decimals ?? 3);
     }
 
-    if (fun === "sum") {
-        return round(values.reduce((acc, val) => acc + val, 0));
-    }
-
-    if (fun === "mean") {
-        return round(values.reduce((acc, val) => acc + val, 0) / values.length);
-    }
-
-    return "UNKNOWN";
+    return result;
 }

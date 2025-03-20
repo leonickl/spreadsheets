@@ -5,7 +5,7 @@ import { isEmail, isPhoneNumber, isURL } from "./lib/types";
 export default function CellData({ cell }) {
     const { table } = useGlobalState();
 
-    if (cell.type === "formula") {
+    if (cell.data?.[0] === "=") {
         return <span>{evaluate(cell.data, table, cell.decimals)}</span>;
     }
 

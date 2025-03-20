@@ -11,9 +11,9 @@ export default function Cell({ y, x, cell }) {
             className={`
                 ${focused && "outline outline-blue-600 outline-3 rounded"}
                 border border-opacity-20 border-white hover:bg-gray-700 relative
-                ${cell.type === "number" && "type-number"} 
-                ${cell.type === "special" && "type-special"}  
-                ${cell.type === "formula" && "type-formula"}
+                ${cell.type === "number" && "type-number"}
+                ${cell.type === "special" && "type-special"}
+                ${cell.data?.[0] === "=" && "type-formula"}
             `}
             onMouseDown={() => setCursor({ y, x })}
             onDoubleClick={() => inputRef.current.focus()}
