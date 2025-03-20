@@ -44,6 +44,10 @@ function functions() {
         return Math.log(x);
     }
 
+    function if_(...x) {
+        console.log(x);
+    }
+
     return {
         sum: listOr(sum),
         prod: listOr(prod),
@@ -54,6 +58,7 @@ function functions() {
         cos,
         exp,
         log,
+        if: if_,
     };
 }
 
@@ -87,7 +92,7 @@ export default function evaluate(formula, table, decimals) {
         }
 
         if (formula.type === "cell") {
-            const [_, x, y] = formula.value.match(/^([A-Z]+)(\d+)$/);
+            const [, x, y] = formula.value.match(/^([A-Z]+)(\d+)$/);
 
             const cell = table.find(
                 (cell) => cell.x == index(x) && cell.y == y
@@ -98,13 +103,13 @@ export default function evaluate(formula, table, decimals) {
                 return null;
             }
 
-            return cell.type === "formula"
+            return cell.data?.[0] === "="
                 ? evaluateFormula(parse(cell.data))
                 : parseFloat(cell.data);
         }
 
         if (formula.type === "range") {
-            const [_, x1, y1, x2, y2] = formula.value.match(
+            const [, x1, y1, x2, y2] = formula.value.match(
                 /^([A-Z]+)(\d+):([A-Z]+)(\d+)$/
             );
 
@@ -117,12 +122,10 @@ export default function evaluate(formula, table, decimals) {
                         cell.y <= parseInt(y2)
                 )
                 .map((cell) =>
-                    cell.type === "formula"
+                    cell.data?.[0] === "="
                         ? evaluateFormula(parse(cell.data))
                         : parseFloat(cell.data)
                 );
-
-            log({ list });
 
             return list;
         }
@@ -132,7 +135,6 @@ export default function evaluate(formula, table, decimals) {
         }
 
         if (formula.type === "array") {
-            log({ formula });
             return formula.elements.map(evaluateFormula);
         }
 
