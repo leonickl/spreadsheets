@@ -2,7 +2,7 @@ import CellData from "./CellData";
 import { useGlobalState } from "./hooks/useGlobalState";
 
 export default function Cell({ y, x, cell }) {
-    const { cursor, setCursor } = useGlobalState();
+    const { cursor, setCursor, inputRef } = useGlobalState();
 
     const focused = cursor && cursor.y == y && cursor.x == x;
 
@@ -15,7 +15,8 @@ export default function Cell({ y, x, cell }) {
                 ${cell.type === "special" && "type-special"}  
                 ${cell.type === "formula" && "type-formula"}
             `}
-            onClick={() => setCursor({ y, x })}
+            onMouseDown={() => setCursor({ y, x })}
+            onDoubleClick={() => inputRef.current.focus()}
         >
             <div className={`min-h-9 min-w-24 w-full px-5 py-2 inline`}>
                 <CellData cell={cell} />

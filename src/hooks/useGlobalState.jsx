@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 
 const GlobalStateContext = createContext();
 
@@ -15,6 +15,8 @@ export const GlobalStateProvider = ({ children }) => {
     const [changed, setChanged] = useState(
         localStorage.getItem("changed") ?? false
     );
+
+    const inputRef = useRef();
 
     function updateTable(y, x, props) {
         if (table.find((cell) => cell.y == y && cell.x == x)) {
@@ -107,6 +109,7 @@ export const GlobalStateProvider = ({ children }) => {
                 setFilename,
                 changed,
                 setChanged,
+                inputRef,
             }}
         >
             {children}

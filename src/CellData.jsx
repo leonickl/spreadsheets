@@ -6,7 +6,7 @@ export default function CellData({ cell }) {
     const { table } = useGlobalState();
 
     if (cell.type === "formula") {
-        return <span>{evaluate(cell.data, table)}</span>;
+        return <span>{evaluate(cell.data, table, cell.decimals)}</span>;
     }
 
     if (cell.type === "special" && isEmail(cell.data)) {

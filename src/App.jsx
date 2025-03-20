@@ -6,7 +6,6 @@ import { limit } from "./lib/cursor";
 import { useEffect, useRef, useState } from "react";
 
 export default function App() {
-    const inputRef = useRef();
     const fileInputRef = useRef(null);
 
     const [isFocused, setIsFocused] = useState(false);
@@ -23,6 +22,7 @@ export default function App() {
         filename,
         setFilename,
         changed,
+        inputRef,
     } = useGlobalState();
 
     const cell = find(table, cursor.y, cursor.x) ?? {
@@ -123,8 +123,16 @@ export default function App() {
                 });
             }
 
-            if (event.key === "s" || event.key === "S") {
-                exportTable();
+            if (event.key === "+") {
+                updateTable(cursor.y, cursor.x, {
+                    decimals: (cell.decimals ?? 0) + 1,
+                });
+            }
+
+            if (event.key === "-") {
+                updateTable(cursor.y, cursor.x, {
+                    decimals: Math.max(0, (cell.decimals ?? 0) - 1),
+                });
             }
         };
 
@@ -133,7 +141,7 @@ export default function App() {
         return () => {
             document.removeEventListener("keydown", handleKeyPress);
         };
-    }, [isFocused, cursor]);
+    }, [isFocused, cursor, table]);
 
     return (
         <div className="flex flex-col gap-10 items-center min-h-screen bg-gray-900 text-white text-center p-8">
