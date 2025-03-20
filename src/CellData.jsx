@@ -3,7 +3,7 @@ import evaluate from "./lib/evaluate";
 import { isEmail, isPhoneNumber, isURL } from "./lib/types";
 
 export default function CellData({ cell }) {
-    const { table } = useGlobalState();
+    const { table, updateTable, cursor } = useGlobalState();
 
     if (cell.data?.[0] === "=") {
         return <span>{evaluate(cell.data, table, cell.decimals)}</span>;
@@ -36,6 +36,21 @@ export default function CellData({ cell }) {
             >
                 {cell.data}
             </a>
+        );
+    }
+
+    if (cell.type === "special" && (cell.data == 1 || cell.data == 0)) {
+        return (
+            <input
+                type="checkbox"
+                checked={cell.data}
+                onChange={(e) =>
+                    updateTable(cursor.y, cursor.x, {
+                        data: e.target.checked ? 1 : 0,
+                    })
+                }
+                className="accent-green-500"
+            />
         );
     }
 

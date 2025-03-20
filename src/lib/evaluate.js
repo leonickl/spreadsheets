@@ -151,6 +151,10 @@ export default function evaluate(formula, table, decimals) {
             );
         }
 
+        if (formula.type === "string") {
+            return formula.value;
+        }
+
         return "{invalid type}";
     }
 
