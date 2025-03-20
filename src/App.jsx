@@ -25,7 +25,10 @@ export default function App() {
         changed,
     } = useGlobalState();
 
-    const cell = find(table, cursor.y, cursor.x);
+    const cell = find(table, cursor.y, cursor.x) ?? {
+        x: cursor.x,
+        y: cursor.y,
+    };
 
     useEffect(() => {
         const checkFocus = () => {
@@ -95,6 +98,12 @@ export default function App() {
             if (event.key === "*") {
                 updateTable(cursor.y, cursor.x, {
                     type: cell.type === "special" ? "string" : "special",
+                });
+            }
+
+            if (event.key === "=") {
+                updateTable(cursor.y, cursor.x, {
+                    type: cell.type === "formula" ? "string" : "formula",
                 });
             }
 

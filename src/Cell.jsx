@@ -8,11 +8,13 @@ export default function Cell({ y, x, cell }) {
 
     return (
         <td
-            className={`${
-                focused && "outline outline-blue-600 outline-3 rounded"
-            } border border-opacity-20 border-white hover:bg-gray-700 ${
-                cell.type === "number" && "type-number"
-            } ${cell.type === "special" && "type-special"} relative`}
+            className={`
+                ${focused && "outline outline-blue-600 outline-3 rounded"}
+                border border-opacity-20 border-white hover:bg-gray-700 relative
+                ${cell.type === "number" && "type-number"} 
+                ${cell.type === "special" && "type-special"}  
+                ${cell.type === "formula" && "type-formula"}
+            `}
             onClick={() => setCursor({ y, x })}
         >
             <div className={`min-h-9 min-w-24 w-full px-5 py-2 inline`}>

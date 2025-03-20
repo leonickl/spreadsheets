@@ -22,12 +22,12 @@ export function grid(table, cursor) {
         grid[cell.y][cell.x] = cell;
     });
 
-    
     return grid;
 }
 
 export function letter(index) {
     let result = "";
+
     index += 1; // Convert to 1-based index
 
     while (index > 0) {
@@ -37,4 +37,14 @@ export function letter(index) {
     }
 
     return result;
+}
+
+export function index(letter) {
+    let index = 0;
+
+    for (let i = 0; i < letter.length; i++) {
+        index = index * 26 + (letter.charCodeAt(i) - 65 + 1);
+    }
+    
+    return index - 1; // Convert back to zero-based index
 }

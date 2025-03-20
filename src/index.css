@@ -19,3 +19,12 @@
     top: 50%;
     transform: translateY(-50%);
 }
+
+.type-formula::before {
+    content: "=";
+    position: absolute;
+    left: 7px;
+    color: gray;
+    top: 50%;
+    transform: translateY(-50%);
+}

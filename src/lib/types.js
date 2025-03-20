@@ -11,3 +11,7 @@ export function isPhoneNumber(str) {
 export function isURL(str) {
     return /^(https?:\/\/)?([\w.-]+)\.([a-zA-Z]{2,})(\/[\w.-]*)*\/?$/.test(str);
 }
+
+export function isNumeric(value) {
+    return !isNaN(value) && !isNaN(parseFloat(value));
+}
