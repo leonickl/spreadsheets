@@ -1,3 +1,5 @@
+import log from "./log";
+
 export default function parse(formula) {
     function tokenize(str) {
         return (
@@ -15,7 +17,8 @@ export default function parse(formula) {
 
         function applyOperator() {
             const op = operators.pop();
-            if (op === "[") return; // Prevent treating "[" as an operator
+
+            if (op === "[") return;
 
             const right = output.pop();
             const left = output.pop();
@@ -30,9 +33,28 @@ export default function parse(formula) {
         function applyFunction() {
             const funcName = operators.pop();
             const args = [];
+            let temp = [];
 
             while (output.length && output[output.length - 1] !== "(") {
-                args.unshift(output.pop());
+                const item = output.pop();
+                if (item === ",") {
+                    args.unshift(
+                        temp.length === 1
+                            ? temp[0]
+                            : { type: "expression", elements: temp }
+                    );
+                    temp = [];
+                } else {
+                    temp.unshift(item);
+                }
+            }
+
+            if (temp.length > 0) {
+                args.unshift(
+                    temp.length === 1
+                        ? temp[0]
+                        : { type: "expression", elements: temp }
+                );
             }
 
             output.pop(); // Remove "("
@@ -41,11 +63,30 @@ export default function parse(formula) {
 
         function applyArray() {
             const elements = [];
+            let temp = [];
 
             while (output.length && output[output.length - 1] !== "[") {
-                elements.unshift(output.pop());
+                const item = output.pop();
+                if (item === ",") {
+                    elements.unshift(
+                        temp.length === 1
+                            ? temp[0]
+                            : { type: "expression", elements: temp }
+                    );
+                    temp = [];
+                } else {
+                    temp.unshift(item);
+                }
             }
-            
+
+            if (temp.length > 0) {
+                elements.unshift(
+                    temp.length === 1
+                        ? temp[0]
+                        : { type: "expression", elements: temp }
+                );
+            }
+
             output.pop(); // Remove "["
             output.push({ type: "array", elements });
         }
@@ -66,7 +107,6 @@ export default function parse(formula) {
                 ) {
                     applyOperator();
                 }
-
                 operators.push(token);
             } else if (/^[a-z]+$/.test(token)) {
                 operators.push(token);
@@ -89,13 +129,19 @@ export default function parse(formula) {
                     applyFunction();
                 }
             } else if (token === ",") {
-                // Ensure commas inside arrays or function calls are handled properly
-                while (
+                if (
                     operators.length &&
-                    operators[operators.length - 1] !== "(" &&
-                    operators[operators.length - 1] !== "["
+                    operators[operators.length - 1] === "["
                 ) {
-                    applyOperator();
+                    output.push(",");
+                } else {
+                    while (
+                        operators.length &&
+                        operators[operators.length - 1] !== "(" &&
+                        operators[operators.length - 1] !== "["
+                    ) {
+                        applyOperator();
+                    }
                 }
             } else if (token === "[") {
                 operators.push("[");
@@ -106,7 +152,7 @@ export default function parse(formula) {
 
         while (operators.length) {
             if (operators[operators.length - 1] === "[") {
-                operators.pop(); // Remove stray opening brackets
+                operators.pop();
             } else {
                 applyOperator();
             }
@@ -115,5 +161,9 @@ export default function parse(formula) {
         return output.length === 1 ? output[0] : { type: "invalid" };
     }
 
-    return parseTokens(tokenize(formula.trim()));
+    const tokens = tokenize(formula.trim());
+
+    log(tokens)
+
+    return parseTokens(tokens);
 }
