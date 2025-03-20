@@ -8,6 +8,10 @@ function functions() {
         return (list) => (Array.isArray(list) ? f(list) : "{no array}");
     }
 
+    function json(...x) {
+        return JSON.stringify(x);
+    }
+
     function sum(list) {
         return list?.reduce?.((acc, curr) => acc + curr, 0);
     }
@@ -44,11 +48,12 @@ function functions() {
         return Math.log(x);
     }
 
-    function if_(...x) {
-        console.log(x);
+    function test(test, yes, no) {
+        return test ? yes : no;
     }
 
     return {
+        json,
         sum: listOr(sum),
         prod: listOr(prod),
         mean: listOr(mean),
@@ -58,7 +63,7 @@ function functions() {
         cos,
         exp,
         log,
-        if: if_,
+        if: test,
     };
 }
 
