@@ -14,15 +14,15 @@ export default function parse(formula) {
         const operators = [];
 
         const precedence = {
-            "<": 0,
-            ">": 0,
-            "<=": 0,
-            ">=": 0,
-            "==": 0,
-            "+": 1,
-            "-": 1,
-            "*": 2,
-            "/": 2,
+            "<": 1,
+            ">": 1,
+            "<=": 1,
+            ">=": 1,
+            "==": 1,
+            "+": 2,
+            "-": 2,
+            "*": 3,
+            "/": 3,
         };
 
         function applyOperator() {
@@ -49,11 +49,7 @@ export default function parse(formula) {
             while (output.length && output[output.length - 1] !== "(") {
                 const item = output.pop();
                 if (item.type === "comma") {
-                    args.unshift(
-                        temp.length === 1
-                            ? temp[0]
-                            : { type: "expression", elements: temp }
-                    );
+                    args.unshift(temp.length === 1 ? temp[0] : temp);
                     temp = [];
                 } else {
                     temp.unshift(item);
@@ -61,11 +57,7 @@ export default function parse(formula) {
             }
 
             if (temp.length > 0) {
-                args.unshift(
-                    temp.length === 1
-                        ? temp[0]
-                        : { type: "expression", elements: temp }
-                );
+                args.unshift(temp.length === 1 ? temp[0] : temp);
             }
 
             output.pop(); // Remove "("
@@ -79,11 +71,7 @@ export default function parse(formula) {
             while (output.length && output[output.length - 1] !== "[") {
                 const item = output.pop();
                 if (item.type === "comma") {
-                    elements.unshift(
-                        temp.length === 1
-                            ? temp[0]
-                            : { type: "expression", elements: temp }
-                    );
+                    elements.unshift(temp.length === 1 ? temp[0] : temp);
                     temp = [];
                 } else {
                     temp.unshift(item);
@@ -91,11 +79,7 @@ export default function parse(formula) {
             }
 
             if (temp.length > 0) {
-                elements.unshift(
-                    temp.length === 1
-                        ? temp[0]
-                        : { type: "expression", elements: temp }
-                );
+                elements.unshift(temp.length === 1 ? temp[0] : temp);
             }
 
             output.pop(); // Remove "["
@@ -132,7 +116,9 @@ export default function parse(formula) {
                 ) {
                     applyOperator();
                 }
+
                 operators.pop(); // Remove "("
+
                 if (
                     operators.length &&
                     /^[a-z]+$/.test(operators[operators.length - 1])
