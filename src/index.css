@@ -2,8 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-.type-number::before {
-    content: "#";
+.special::before {
     position: absolute;
     left: 7px;
     color: gray;
@@ -11,20 +10,24 @@
     transform: translateY(-50%);
 }
 
-.type-special::before {
-    content: "*";
-    position: absolute;
-    left: 7px;
-    color: gray;
-    top: 50%;
-    transform: translateY(-50%);
+.type-mail::before {
+    content: "@";
+}
+
+.type-phone::before {
+    content: "#";
+}.type-url::before {
+    content: "//";
 }
 
 .type-formula::before {
     content: "=";
-    position: absolute;
-    left: 7px;
-    color: gray;
-    top: 50%;
-    transform: translateY(-50%);
+}
+
+.type-money::before {
+    content: "€";
+}
+
+.type-percent::before {
+    content: "%";
 }

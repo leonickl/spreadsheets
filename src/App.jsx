@@ -171,11 +171,14 @@ export default function App() {
                 >
                     <option></option>
                     <option>checkbox</option>
+                    <option>percent</option>
+                    <option>money</option>
+                    <option>special</option>
                 </select>
             </div>
 
-            <div className="w-full max-h-full ">
-                <div className="w-full relative  whitespace-nowrap">
+            <div className="w-full max-h-full">
+                <div className="w-full relative whitespace-nowrap">
                     <Spreadsheet />
                 </div>
             </div>

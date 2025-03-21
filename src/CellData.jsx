@@ -5,6 +5,12 @@ import { isEmail, isPhoneNumber, isURL } from "./lib/types";
 export default function CellData({ cell }) {
     const { table, updateTable, cursor } = useGlobalState();
 
+    const classes = [
+        cell.bold && "font-bold",
+        cell.underline && "underline",
+        cell.italic && "italic",
+    ].join(" ");
+
     if (cell.data?.[0] === "=") {
         const result = evaluate(table, cell);
 
@@ -13,13 +19,13 @@ export default function CellData({ cell }) {
                 <input
                     type="checkbox"
                     checked={result}
-                    className="accent-green-400 opacity-70"
+                    className={`accent-green-400 opacity-70 ${classes}`}
                     readOnly
                 />
             );
         }
 
-        return <span>{result}</span>;
+        return <span className={classes}>{result}</span>;
     }
 
     if (cell.type === "checkbox") {
@@ -32,48 +38,53 @@ export default function CellData({ cell }) {
                         data: e.target.checked ? 1 : 0,
                     })
                 }
-                className="accent-green-400"
+                className={`accent-green-400 ${classes}`}
             />
         );
     }
 
-    if (cell.type === "special" && isEmail(cell.data)) {
-        return (
-            <a
-                className="underline decoration-gray-400"
-                href={`mailto:${cell.data}`}
-            >
-                {cell.data}
-            </a>
-        );
-    }
+    if (cell.type === "special") {
+        if (isEmail(cell.data)) {
+            return (
+                <a
+                    className={`underline decoration-gray-400 ${classes}`}
+                    href={`mailto:${cell.data}`}
+                >
+                    {cell.data}
+                </a>
+            );
+        }
 
-    if (cell.type === "special" && isURL(cell.data)) {
-        return (
-            <a className="underline decoration-gray-400" href={`${cell.data}`}>
-                {cell.data}
-            </a>
-        );
-    }
+        if (isURL(cell.data)) {
+            return (
+                <a
+                    className={`underline decoration-gray-400 ${classes}`}
+                    href={
+                        cell.data.substr(0, 4) === "http"
+                            ? cell.data
+                            : "https://" + cell.data
+                    }
+                >
+                    {cell.data}
+                </a>
+            );
+        }
 
-    if (cell.type === "special" && isPhoneNumber(cell.data)) {
-        return (
-            <a
-                className="underline decoration-gray-400"
-                href={`tel:${cell.data}`}
-            >
-                {cell.data}
-            </a>
-        );
+        if (isPhoneNumber(cell.data)) {
+            return (
+                <a
+                    className={`underline decoration-gray-400 ${classes}`}
+                    href={`tel:${cell.data}`}
+                >
+                    {cell.data}
+                </a>
+            );
+        }
     }
 
     return (
-        <span
-            className={`${cell.bold && "font-bold"}
-                ${cell.underline && "underline"}
-                ${cell.italic && "italic"}`}
-        >
-            {cell.data}
+        <span className={classes}>
+            {cell.type === "percent" ? cell.data * 100 : cell.data}
         </span>
     );
 }

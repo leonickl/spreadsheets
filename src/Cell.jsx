@@ -1,6 +1,7 @@
 import CellData from "./CellData";
 import { useGlobalState } from "./hooks/useGlobalState";
 import { between } from "./lib/data";
+import { isEmail, isPhoneNumber, isURL } from "./lib/types";
 
 export default function Cell({ y, x, cell }) {
     const { cursor, setCursor, secondaryCursor, inputRef } = useGlobalState();
@@ -13,21 +14,24 @@ export default function Cell({ y, x, cell }) {
         between(x, cursor.x, secondaryCursor.x) &&
         between(y, cursor.y, secondaryCursor.y);
 
+    const classes = [
+        "border border-opacity-20 border-white hover:bg-gray-700 relative",
+        focused && "outline outline-blue-600 outline-3 rounded",
+        secondaryFocused && "outline outline-red-600 outline-3 rounded",
+        focusRange && "bg-gray-800",
+        cell.type === "special" && isEmail(cell.data) && "special type-mail",
+        cell.type === "special" &&
+            isPhoneNumber(cell.data) &&
+            "special type-phone",
+        cell.type === "special" && isURL(cell.data) && "special type-url",
+        cell.type === "money" && "special type-money",
+        cell.type === "percent" && "special type-percent",
+        cell.data?.[0] === "=" && "special type-formula",
+    ];
+
     return (
         <td
-            className={`
-                ${focused && "outline outline-blue-600 outline-3 rounded"}
-                ${
-                    secondaryFocused &&
-                    "outline outline-red-600 outline-3 rounded"
-                }
-                ${focusRange && "bg-gray-800"}
-                border border-opacity-20 border-white
-                hover:bg-gray-700 relative
-                ${cell.type === "number" && "type-number"}
-                ${cell.type === "special" && "type-special"}
-                ${cell.data?.[0] === "=" && "type-formula"}
-            `}
+            className={classes.filter((c) => c).join(" ")}
             onMouseDown={() => setCursor({ y, x })}
             onDoubleClick={() => inputRef.current.focus()}
         >
