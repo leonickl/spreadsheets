@@ -110,7 +110,7 @@ export default function evaluate(table, cell) {
     const result = evaluateFormula(parsed, cell);
 
     if (isNumeric(result) && !isInt(result)) {
-        return result.toFixed(cell.decimals ?? 2);
+        return parseFloat(result).toFixed(cell.decimals ?? 2);
     }
 
     return result;

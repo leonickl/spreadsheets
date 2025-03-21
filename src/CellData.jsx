@@ -25,7 +25,11 @@ export default function CellData({ cell }) {
             );
         }
 
-        return <span className={classes}>{result}</span>;
+        return (
+            <span className={classes}>
+                {cell.type === "percent" ? result * 100 : result}
+            </span>
+        );
     }
 
     if (cell.type === "checkbox") {

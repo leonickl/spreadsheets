@@ -71,6 +71,10 @@ export function functions() {
         return x == y;
     }
 
+    function pow(x, y) {
+        return x ** y;
+    }
+
     // export
 
     return {
@@ -89,6 +93,7 @@ export function functions() {
         or,
         not,
         eq,
+        pow,
     };
 }
 
