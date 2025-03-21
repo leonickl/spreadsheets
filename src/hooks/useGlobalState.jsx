@@ -45,7 +45,7 @@ export const GlobalStateProvider = ({ children }) => {
             return setFile((file) => ({ ...file, body: table }));
         }
 
-        setFile((file) => ({ ...file, body: table(file.body) }));
+        setFile((file) => ({ ...file, body: table }));
     }
 
     function setFilename(filename) {
@@ -79,8 +79,7 @@ export const GlobalStateProvider = ({ children }) => {
     }
 
     function dropTable() {
-        setTable(emptyTable);
-        setFilename("Spreadsheet");
+        setFile(emptyTable);
         setChanged(false);
     }
 
