@@ -8,11 +8,7 @@ export default function CellData({ cell }) {
     if (cell.data?.[0] === "=") {
         const result = evaluate(table, cell);
 
-        if (
-            cell.type === "special" &&
-            cell.data?.[0] === "=" &&
-            (result == 1 || result == 0)
-        ) {
+        if (cell.type === "checkbox") {
             return (
                 <input
                     type="checkbox"
@@ -26,7 +22,7 @@ export default function CellData({ cell }) {
         return <span>{result}</span>;
     }
 
-    if (cell.type === "special" && (cell.data == 1 || cell.data == 0)) {
+    if (cell.type === "checkbox") {
         return (
             <input
                 type="checkbox"

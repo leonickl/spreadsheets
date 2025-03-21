@@ -13,6 +13,7 @@ const GlobalStateContext = createContext();
 export const GlobalStateProvider = ({ children }) => {
     const [secondaryCursor, setSecondaryCursor] = useState();
     const [cursor, setCursor] = useState({ x: 0, y: 0 });
+    const [clipboard, setClipboard] = useState();
 
     const [file, setFile] = useState(() => {
         const stored = localStorage.getItem("file");
@@ -149,6 +150,8 @@ export const GlobalStateProvider = ({ children }) => {
                 inputRef,
                 secondaryCursor,
                 setSecondaryCursor,
+                clipboard,
+                setClipboard,
             }}
         >
             {children}

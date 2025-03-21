@@ -4,6 +4,7 @@ import { useGlobalState } from "./hooks/useGlobalState";
 import { find } from "./lib/data";
 import { limit } from "./lib/cursor";
 import { useEffect, useRef, useState } from "react";
+import keyPress from "./lib/keyPress";
 
 export default function App() {
     const fileInputRef = useRef(null);
@@ -25,6 +26,8 @@ export default function App() {
         inputRef,
         secondaryCursor,
         setSecondaryCursor,
+        clipboard,
+        setClipboard,
     } = useGlobalState();
 
     const cell = find(table, cursor.y, cursor.x) ?? {
@@ -48,149 +51,23 @@ export default function App() {
 
     useEffect(() => {
         const handleKeyPress = (event) => {
-            // also if in input mode
-
-            if (event.key === "ArrowUp") {
-                setCursor(({ x, y }) => limit({ x, y: y - 1 }));
-            }
-
-            if (event.key === "ArrowDown") {
-                setCursor(({ x, y }) => limit({ x, y: y + 1 }));
-            }
-
-            if (event.key === "Enter") {
-                if (isFocused) {
-                    setCursor(({ x, y }) => limit({ x, y: y + 1 }));
-                } else {
-                    inputRef.current.focus();
-                }
-            }
-
-            if (event.key === "Escape") {
-                inputRef.current.blur();
-            }
-
-            if (event.key === "Tab") {
-                event.preventDefault();
-                setCursor(({ x, y }) => limit({ x: x + 1, y }));
-            }
-
-            if (isFocused) return;
-
-            // only if in navigation mode
-
-            if (event.key === "ArrowLeft") {
-                setCursor(({ x, y }) => limit({ x: x - 1, y }));
-            }
-
-            if (event.key === "ArrowRight") {
-                setCursor(({ x, y }) => limit({ x: x + 1, y }));
-            }
-
-            if (event.key === "Delete") {
-                removeFromTable(cursor.y, cursor.x);
-            }
-
-            if (event.key === "#") {
-                updateTable(cursor.y, cursor.x, {
-                    type: cell.type === "number" ? "string" : "number",
-                });
-            }
-
-            if (event.key === "*") {
-                updateTable(cursor.y, cursor.x, {
-                    type: cell.type === "special" ? "string" : "special",
-                });
-            }
-
-            if (event.key === "b" || event.key === "B") {
-                updateTable(cursor.y, cursor.x, { bold: !cell?.bold });
-            }
-
-            if (event.key === "u" || event.key === "U") {
-                updateTable(cursor.y, cursor.x, {
-                    underline: !cell?.underline,
-                });
-            }
-
-            if (event.key === "i" || event.key === "I") {
-                updateTable(cursor.y, cursor.x, {
-                    italic: !cell?.italic,
-                });
-            }
-
-            if (event.key === "+") {
-                updateTable(cursor.y, cursor.x, {
-                    decimals: (cell.decimals ?? 0) + 1,
-                });
-            }
-
-            if (event.key === "-") {
-                updateTable(cursor.y, cursor.x, {
-                    decimals: Math.max(0, (cell.decimals ?? 0) - 1),
-                });
-            }
-
-            if (event.key === "Shift") {
-                if (secondaryCursor) {
-                    setSecondaryCursor();
-                } else {
-                    setSecondaryCursor(cursor);
-                }
-            }
-
-            if (event.key === "Escape") {
-                setSecondaryCursor();
-            }
-
-            function updateRange(from, to, props) {
-                for (let y = from.y; y <= to.y; y++) {
-                    for (let x = from.x; x <= to.x; x++) {
-                        updateTable(y, x, props);
-                    }
-                }
-            }
-
-            function without(obj, props) {
-                return Object.fromEntries(
-                    Object.entries(obj).filter(([key]) => !props.includes(key))
-                );
-            }
-
-            if (event.key === "f" && cursor && secondaryCursor) {
-                const secondaryCursorCell = find(
-                    table,
-                    secondaryCursor.y,
-                    secondaryCursor.x
-                ) ?? { data: null };
-
-                updateRange(
-                    secondaryCursor,
-                    cursor,
-                    without(secondaryCursorCell, ["x", "y"])
-                );
-            }
-
-            if (event.key === "f" && cursor && !secondaryCursor) {
-                const column = table
-                    .filter(
-                        (cell) =>
-                            cell.x == cursor.x && cell.data && cell.y < cursor.y
-                    )
-                    .sort((one, other) => one.y - other.y);
-
-                const last = column[column.length - 1] ?? { data: null };
-
-                console.log({ column, last });
-
-                updateRange(
-                    { x: last.x, y: last.y + 1 },
-                    cursor,
-                    without(last, ["x", "y"])
-                );
-            }
+            keyPress({
+                event,
+                updateTable,
+                limit,
+                setCursor,
+                inputRef,
+                removeFromTable,
+                cursor,
+                isFocused,
+                cell,
+                secondaryCursor,
+                setSecondaryCursor,
+                table,
+                clipboard,
+                setClipboard,
+            });
         };
-
         document.addEventListener("keydown", handleKeyPress);
 
         return () => {
@@ -198,7 +75,11 @@ export default function App() {
         };
     }, [isFocused, cursor, table, secondaryCursor]);
 
-    if (!table) return <p>loading...</p>;
+    useEffect(() => {}, []);
+
+    if (!table) {
+        return <p>loading...</p>;
+    }
 
     return (
         <div className="flex flex-col gap-10 items-center min-h-screen bg-gray-900 text-white text-center p-8">
@@ -277,6 +158,20 @@ export default function App() {
                     }
                     className="bg-gray-800 min-h-10 w-full px-5 py-2 rounded-md border border-gray-400 focus:border-blue-700 focus:outline-blue-700"
                 />
+
+                <select
+                    disabled={!cursor}
+                    value={(cursor && cell?.type) ?? ""}
+                    onChange={(e) => {
+                        updateTable(cursor.y, cursor.x, {
+                            type: e.target.value,
+                        });
+                    }}
+                    className="bg-gray-800 min-h-10 w-40 px-5 py-2 rounded-md border border-gray-400 focus:border-blue-700 focus:outline-blue-700"
+                >
+                    <option></option>
+                    <option>checkbox</option>
+                </select>
             </div>
 
             <div className="w-full max-h-full ">
