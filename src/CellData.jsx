@@ -18,6 +18,7 @@ export default function CellData({ cell }) {
                     type="checkbox"
                     checked={result}
                     className="accent-green-400 opacity-70"
+                    readOnly
                 />
             );
         }
