@@ -1,22 +1,57 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import React, {
+    createContext,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
+import { emptyTable } from "../lib/emptyTable";
 
 const GlobalStateContext = createContext();
 
 export const GlobalStateProvider = ({ children }) => {
+    const [secondaryCursor, setSecondaryCursor] = useState();
     const [cursor, setCursor] = useState({ x: 0, y: 0 });
-    const [table, setTable] = useState(() =>
-        localStorage.getItem("table")
-            ? JSON.parse(localStorage.getItem("table"))
-            : []
-    );
-    const [filename, setFilename] = useState(
-        localStorage.getItem("filename") ?? "Spreadsheet"
-    );
+
+    const [file, setFile] = useState(() => {
+        const stored = localStorage.getItem("file");
+
+        if (!stored) {
+            return emptyTable;
+        }
+
+        const parsed = JSON.parse(localStorage.getItem("file"));
+
+        if (!parsed || parsed?.body?.length === 0) {
+            return emptyTable;
+        }
+
+        return parsed;
+    });
+
     const [changed, setChanged] = useState(
         localStorage.getItem("changed") ?? false
     );
 
     const inputRef = useRef();
+
+    console.log({ file });
+
+    const table = useMemo(() => file.body, [file]);
+    const filename = useMemo(() => file.filename ?? "Spreadsheet", [file]);
+
+    function setTable(table) {
+        if (Array.isArray(table)) {
+            return setFile((file) => ({ ...file, body: table }));
+        }
+
+        setFile((file) => ({ ...file, body: table(file.body) }));
+    }
+
+    function setFilename(filename) {
+        setFile((file) => ({ ...file, filename }));
+    }
 
     function updateTable(y, x, props) {
         if (table.find((cell) => cell.y == y && cell.x == x)) {
@@ -41,13 +76,13 @@ export const GlobalStateProvider = ({ children }) => {
     }
 
     function dropTable() {
-        setTable([{ x: 5, y: 10, data: null }]);
+        setTable(emptyTable);
         setFilename("Spreadsheet");
         setChanged(false);
     }
 
     function exportTable() {
-        const json = JSON.stringify(table, null, 2);
+        const json = JSON.stringify(file, null, 2);
 
         const blob = new Blob([json], { type: "application/json" });
         const url = URL.createObjectURL(blob);
@@ -68,8 +103,16 @@ export const GlobalStateProvider = ({ children }) => {
 
             reader.onload = () => {
                 try {
-                    setTable(JSON.parse(reader.result));
-                    setFilename(file.name.replace(".json", ""));
+                    const parsed = JSON.parse(reader.result);
+
+                    setFile(
+                        Array.isArray(parsed)
+                            ? {
+                                  filename: file.name.replace(".json", ""),
+                                  body: parsed,
+                              }
+                            : parsed
+                    );
                 } catch (error) {
                     console.error("Error parsing JSON:", error);
                 }
@@ -82,12 +125,8 @@ export const GlobalStateProvider = ({ children }) => {
     }
 
     useEffect(() => {
-        localStorage.setItem("table", JSON.stringify(table));
-    }, [table]);
-
-    useEffect(() => {
-        localStorage.setItem("filename", filename);
-    }, [filename]);
+        localStorage.setItem("file", JSON.stringify(file));
+    }, [file]);
 
     useEffect(() => {
         localStorage.setItem("changed", changed);
@@ -110,6 +149,8 @@ export const GlobalStateProvider = ({ children }) => {
                 changed,
                 setChanged,
                 inputRef,
+                secondaryCursor,
+                setSecondaryCursor,
             }}
         >
             {children}

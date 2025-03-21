@@ -2,14 +2,20 @@ import CellData from "./CellData";
 import { useGlobalState } from "./hooks/useGlobalState";
 
 export default function Cell({ y, x, cell }) {
-    const { cursor, setCursor, inputRef } = useGlobalState();
+    const { cursor, setCursor, secondaryCursor, inputRef } = useGlobalState();
 
     const focused = cursor && cursor.y == y && cursor.x == x;
+    const secondaryFocused =
+        secondaryCursor && secondaryCursor.y == y && secondaryCursor.x == x;
 
     return (
         <td
             className={`
                 ${focused && "outline outline-blue-600 outline-3 rounded"}
+                ${
+                    secondaryFocused &&
+                    "outline outline-red-600 outline-3 rounded"
+                }
                 border border-opacity-20 border-white hover:bg-gray-700 relative
                 ${cell.type === "number" && "type-number"}
                 ${cell.type === "special" && "type-special"}

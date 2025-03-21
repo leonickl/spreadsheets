@@ -23,6 +23,8 @@ export default function App() {
         setFilename,
         changed,
         inputRef,
+        secondaryCursor,
+        setSecondaryCursor,
     } = useGlobalState();
 
     const cell = find(table, cursor.y, cursor.x) ?? {
@@ -128,6 +130,18 @@ export default function App() {
                     decimals: Math.max(0, (cell.decimals ?? 0) - 1),
                 });
             }
+
+            if (event.key === "Shift") {
+                if (secondaryCursor) {
+                    setSecondaryCursor();
+                } else {
+                    setSecondaryCursor(cursor);
+                }
+            }
+
+            if (event.key === "Escape") {
+                setSecondaryCursor();
+            }
         };
 
         document.addEventListener("keydown", handleKeyPress);
@@ -135,7 +149,9 @@ export default function App() {
         return () => {
             document.removeEventListener("keydown", handleKeyPress);
         };
-    }, [isFocused, cursor, table]);
+    }, [isFocused, cursor, table, secondaryCursor]);
+
+    if (!table) return <p>loading...</p>;
 
     return (
         <div className="flex flex-col gap-10 items-center min-h-screen bg-gray-900 text-white text-center p-8">
