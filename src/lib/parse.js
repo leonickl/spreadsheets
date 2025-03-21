@@ -4,7 +4,7 @@ export default function parse(formula) {
     function tokenize(str) {
         return (
             str.match(
-                /"[^"]*"|-?\d*\.?\d+(e[+-]?\d+)?|[A-Z]+\d+:[A-Z]+\d+|[A-Z]+\d+|[a-z]+(?=\()|[+\-*/()]|\[|\]|,|\w+/g
+                /"[^"]*"|-?\d*\.?\d+(e[+-]?\d+)?|[A-Z]+\d+:[A-Z]+\d+|[A-Z]+\d+|[a-z]+(?=\()|<=|>=|==|[+\-*/()<>]|\[|\]|,|\w+/g
             ) || []
         );
     }
@@ -13,14 +13,26 @@ export default function parse(formula) {
         const output = [];
         const operators = [];
 
-        const precedence = { "+": 1, "-": 1, "*": 2, "/": 2 };
+        const precedence = {
+            "<": 0,
+            ">": 0,
+            "<=": 0,
+            ">=": 0,
+            "==": 0,
+            "+": 1,
+            "-": 1,
+            "*": 2,
+            "/": 2,
+        };
 
         function applyOperator() {
             const op = operators.pop();
+
             if (op === "[" || op === "(") return;
 
             const right = output.pop();
             const left = output.pop();
+
             if (left === undefined) {
                 output.push({ type: "invalid" });
                 return;
@@ -99,7 +111,7 @@ export default function parse(formula) {
                 output.push({ type: "range", value: token });
             } else if (/^[A-Z]+\d+$/.test(token)) {
                 output.push({ type: "cell", value: token });
-            } else if (/[+\-*/]/.test(token)) {
+            } else if (/<=|>=|==|[+\-*/<>]/.test(token)) {
                 while (
                     operators.length &&
                     precedence[operators[operators.length - 1]] >=

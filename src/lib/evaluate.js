@@ -52,6 +52,18 @@ function functions() {
         return test ? yes : no;
     }
 
+    function and(a, b) {
+        return a && b;
+    }
+
+    function or(a, b) {
+        return a || b;
+    }
+
+    function not(a) {
+        return !a;
+    }
+
     return {
         json,
         sum: listOr(sum),
@@ -64,6 +76,9 @@ function functions() {
         exp,
         log,
         if: test,
+        and,
+        or,
+        not,
     };
 }
 
@@ -72,6 +87,12 @@ function operator(left, op, right) {
     if (op === "-") return left - right;
     if (op === "*") return left * right;
     if (op === "/") return left / right;
+
+    if (op === "<") return left < right ? 1 : 0;
+    if (op === "<=") return left <= right ? 1 : 0;
+    if (op === ">") return left > right ? 1 : 0;
+    if (op === ">=") return left >= right ? 1 : 0;
+    if (op === "==") return left == right ? 1 : 0;
 }
 
 export default function evaluate(formula, table, decimals) {

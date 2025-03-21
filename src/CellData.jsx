@@ -6,7 +6,38 @@ export default function CellData({ cell }) {
     const { table, updateTable, cursor } = useGlobalState();
 
     if (cell.data?.[0] === "=") {
-        return <span>{evaluate(cell.data, table, cell.decimals)}</span>;
+        const result = evaluate(cell.data, table, cell.decimals);
+
+        if (
+            cell.type === "special" &&
+            cell.data?.[0] === "=" &&
+            (result == 1 || result == 0)
+        ) {
+            return (
+                <input
+                    type="checkbox"
+                    checked={result}
+                    className="accent-green-400 opacity-70"
+                />
+            );
+        }
+
+        return <span>{result}</span>;
+    }
+
+    if (cell.type === "special" && (cell.data == 1 || cell.data == 0)) {
+        return (
+            <input
+                type="checkbox"
+                checked={cell.data}
+                onChange={(e) =>
+                    updateTable(cursor.y, cursor.x, {
+                        data: e.target.checked ? 1 : 0,
+                    })
+                }
+                className="accent-green-400"
+            />
+        );
     }
 
     if (cell.type === "special" && isEmail(cell.data)) {
@@ -36,21 +67,6 @@ export default function CellData({ cell }) {
             >
                 {cell.data}
             </a>
-        );
-    }
-
-    if (cell.type === "special" && (cell.data == 1 || cell.data == 0)) {
-        return (
-            <input
-                type="checkbox"
-                checked={cell.data}
-                onChange={(e) =>
-                    updateTable(cursor.y, cursor.x, {
-                        data: e.target.checked ? 1 : 0,
-                    })
-                }
-                className="accent-green-500"
-            />
         );
     }
 
