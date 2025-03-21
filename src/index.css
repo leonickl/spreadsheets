@@ -10,24 +10,34 @@
     transform: translateY(-50%);
 }
 
-.type-mail::before {
-    content: "@";
-}
-
-.type-phone::before {
-    content: "#";
-}.type-url::before {
-    content: "//";
+.special::after {
+    position: absolute;
+    right: 7px;
+    color: gray;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .type-formula::before {
     content: "=";
 }
 
-.type-money::before {
+.type-mail::after {
+    content: "@";
+}
+
+.type-phone::after {
+    content: "#";
+}
+
+.type-url::after {
+    content: "//";
+}
+
+.type-money::after {
     content: "€";
 }
 
-.type-percent::before {
+.type-percent::after {
     content: "%";
 }
