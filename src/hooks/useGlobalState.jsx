@@ -45,7 +45,7 @@ export const GlobalStateProvider = ({ children }) => {
             return setFile((file) => ({ ...file, body: table }));
         }
 
-        setFile((file) => ({ ...file, body: table }));
+        setFile((file) => ({ ...file, body: table(file.body) }));
     }
 
     function setFilename(filename) {
