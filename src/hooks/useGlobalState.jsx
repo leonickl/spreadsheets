@@ -36,8 +36,6 @@ export const GlobalStateProvider = ({ children }) => {
 
     const inputRef = useRef();
 
-    console.log({ file });
-
     const table = useMemo(() => file.body, [file]);
     const filename = useMemo(() => file.filename ?? "Spreadsheet", [file]);
 

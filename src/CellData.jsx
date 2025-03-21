@@ -6,7 +6,7 @@ export default function CellData({ cell }) {
     const { table, updateTable, cursor } = useGlobalState();
 
     if (cell.data?.[0] === "=") {
-        const result = evaluate(cell.data, table, cell.decimals);
+        const result = evaluate(table, cell);
 
         if (
             cell.type === "special" &&

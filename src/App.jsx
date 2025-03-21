@@ -142,6 +142,53 @@ export default function App() {
             if (event.key === "Escape") {
                 setSecondaryCursor();
             }
+
+            function updateRange(from, to, props) {
+                for (let y = from.y; y <= to.y; y++) {
+                    for (let x = from.x; x <= to.x; x++) {
+                        updateTable(y, x, props);
+                    }
+                }
+            }
+
+            function without(obj, props) {
+                return Object.fromEntries(
+                    Object.entries(obj).filter(([key]) => !props.includes(key))
+                );
+            }
+
+            if (event.key === "f" && cursor && secondaryCursor) {
+                const secondaryCursorCell = find(
+                    table,
+                    secondaryCursor.y,
+                    secondaryCursor.x
+                ) ?? { data: null };
+
+                updateRange(
+                    secondaryCursor,
+                    cursor,
+                    without(secondaryCursorCell, ["x", "y"])
+                );
+            }
+
+            if (event.key === "f" && cursor && !secondaryCursor) {
+                const column = table
+                    .filter(
+                        (cell) =>
+                            cell.x == cursor.x && cell.data && cell.y < cursor.y
+                    )
+                    .sort((one, other) => one.y - other.y);
+
+                const last = column[column.length - 1] ?? { data: null };
+
+                console.log({ column, last });
+
+                updateRange(
+                    { x: last.x, y: last.y + 1 },
+                    cursor,
+                    without(last, ["x", "y"])
+                );
+            }
         };
 
         document.addEventListener("keydown", handleKeyPress);

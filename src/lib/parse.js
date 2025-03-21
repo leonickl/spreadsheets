@@ -4,7 +4,7 @@ export default function parse(formula) {
     function tokenize(str) {
         return (
             str.match(
-                /"[^"]*"|-?\d*\.?\d+(e[+-]?\d+)?|[A-Z]+\d+:[A-Z]+\d+|[A-Z]+\d+|[a-z]+(?=\()|<=|>=|==|[+\-*/()<>]|\[|\]|,|\w+/g
+                /"[^"]*"|-?\d*\.?\d+(e[+-]?\d+)?|[A-Z#]+[\d#]+:[A-Z#]+[\d#]+|[A-Z#]+[\d#]+|[a-z]+(?=\()|<=|>=|==|[+\-*/()<>]|\[|\]|,|\w+/g
             ) || []
         );
     }
@@ -91,9 +91,9 @@ export default function parse(formula) {
                 output.push({ type: "string", value: token.slice(1, -1) });
             } else if (/^-?\d*\.?\d+(e[+-]?\d+)?$/i.test(token)) {
                 output.push({ type: "number", value: parseFloat(token) });
-            } else if (/^[A-Z]+\d+:[A-Z]+\d+$/.test(token)) {
+            } else if (/^[A-Z#]+[\d#]+:[A-Z#]+[\d#]+$/.test(token)) {
                 output.push({ type: "range", value: token });
-            } else if (/^[A-Z]+\d+$/.test(token)) {
+            } else if (/^[A-Z#]+[\d#]+$/.test(token)) {
                 output.push({ type: "cell", value: token });
             } else if (/<=|>=|==|[+\-*/<>]/.test(token)) {
                 while (
@@ -150,7 +150,7 @@ export default function parse(formula) {
 
     const tokens = tokenize(formula.trim());
 
-    log(tokens);
+    console.debug(tokens);
 
     return parseTokens(tokens);
 }

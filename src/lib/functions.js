@@ -1,7 +1,15 @@
 export function functions() {
+    // decorators
+
+    function floatList(f) {
+        return (list) => (Array.isArray(list) ? f(list.map(parseFloat)) : list);
+    }
+
     function listOr(f) {
         return (list) => (Array.isArray(list) ? f(list) : "{no array}");
     }
+
+    // functions
 
     function json(...x) {
         return JSON.stringify(x);
@@ -63,13 +71,15 @@ export function functions() {
         return x == y;
     }
 
+    // export
+
     return {
         json,
-        sum: listOr(sum),
-        prod: listOr(prod),
-        mean: listOr(mean),
-        min: listOr(min),
-        max: listOr(max),
+        sum: listOr(floatList(sum)),
+        prod: listOr(floatList(prod)),
+        mean: listOr(floatList(mean)),
+        min: listOr(floatList(min)),
+        max: listOr(floatList(max)),
         sin,
         cos,
         exp,
@@ -83,6 +93,9 @@ export function functions() {
 }
 
 export function operator(left, op, right) {
+    left = parseFloat(left);
+    right = parseFloat(right);
+
     if (op === "+") return left + right;
     if (op === "-") return left - right;
     if (op === "*") return left * right;

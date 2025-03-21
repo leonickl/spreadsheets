@@ -1,11 +1,18 @@
 import { functions, operator } from "./functions.js";
 import { index } from "./grid.js";
-import log from "./log.js";
 import parse from "./parse.js";
 import { isInt, isNumeric } from "./types.js";
 
-export default function evaluate(formula, table, decimals) {
-    function evaluateFormula(formula) {
+export default function evaluate(table, cell) {
+    function hashToCurrent(axis, value, cell) {
+        if (!["x", "y"].includes(axis)) {
+            throw new Error("axis must be x or y");
+        }
+
+        return value === "#" ? cell[axis] : value;
+    }
+
+    function evaluateFormula(formula, cell) {
         if (!formula) {
             return null;
         }
@@ -21,31 +28,36 @@ export default function evaluate(formula, table, decimals) {
                 return "{unknown function}";
             }
 
-            const result = f(...formula.args.map(evaluateFormula));
+            const result = f(
+                ...formula.args.map((e) => evaluateFormula(e, cell))
+            );
 
             return result;
         }
 
         if (formula.type === "cell") {
-            const [, x, y] = formula.value.match(/^([A-Z]+)(\d+)$/);
+            let [, x, y] = formula.value.match(/^([A-Z#]+)([\d#]+)$/);
 
-            const cell = table.find(
+            x = hashToCurrent("x", x, cell);
+            y = hashToCurrent("y", y, cell);
+
+            const referencedCell = table.find(
                 (cell) => cell.x == index(x) && cell.y == y
             );
 
-            if (!cell) {
-                log("cell not found");
+            if (!referencedCell) {
+                console.warn("cell not found");
                 return null;
             }
 
-            return cell.data?.[0] === "="
-                ? evaluateFormula(parse(cell.data))
-                : parseFloat(cell.data);
+            return referencedCell.data?.[0] === "="
+                ? evaluateFormula(parse(referencedCell.data), referencedCell)
+                : referencedCell.data;
         }
 
         if (formula.type === "range") {
             const [, x1, y1, x2, y2] = formula.value.match(
-                /^([A-Z]+)(\d+):([A-Z]+)(\d+)$/
+                /^([A-Z]+)([\d#]+):([A-Z]+)([\d#]+)$/
             );
 
             const list = table
@@ -58,8 +70,8 @@ export default function evaluate(formula, table, decimals) {
                 )
                 .map((cell) =>
                     cell.data?.[0] === "="
-                        ? evaluateFormula(parse(cell.data))
-                        : parseFloat(cell.data)
+                        ? evaluateFormula(parse(cell.data), cell)
+                        : cell.data
                 );
 
             return list;
@@ -70,14 +82,14 @@ export default function evaluate(formula, table, decimals) {
         }
 
         if (formula.type === "array") {
-            return formula.elements.map(evaluateFormula);
+            return formula.elements.map((e) => evaluateFormula(e, cell));
         }
 
         if (formula.type === "operation") {
             return operator(
-                evaluateFormula(formula.left),
+                evaluateFormula(formula.left, cell),
                 formula.operator,
-                evaluateFormula(formula.right)
+                evaluateFormula(formula.right, cell)
             );
         }
 
@@ -88,19 +100,17 @@ export default function evaluate(formula, table, decimals) {
         return "{invalid type}";
     }
 
-    if (!formula) {
-        log("empty formula");
+    if (!cell.data) {
+        console.warn("empty formula");
         return null;
     }
 
-    const parsed = parse(formula);
+    const parsed = parse(cell.data);
 
-    log(parsed);
-
-    const result = evaluateFormula(parsed);
+    const result = evaluateFormula(parsed, cell);
 
     if (isNumeric(result) && !isInt(result)) {
-        return result.toFixed(decimals ?? 2);
+        return result.toFixed(cell.decimals ?? 2);
     }
 
     return result;

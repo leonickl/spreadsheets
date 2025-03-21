@@ -1,5 +1,6 @@
 import CellData from "./CellData";
 import { useGlobalState } from "./hooks/useGlobalState";
+import { between } from "./lib/data";
 
 export default function Cell({ y, x, cell }) {
     const { cursor, setCursor, secondaryCursor, inputRef } = useGlobalState();
@@ -7,6 +8,10 @@ export default function Cell({ y, x, cell }) {
     const focused = cursor && cursor.y == y && cursor.x == x;
     const secondaryFocused =
         secondaryCursor && secondaryCursor.y == y && secondaryCursor.x == x;
+    const focusRange =
+        secondaryCursor &&
+        between(x, cursor.x, secondaryCursor.x) &&
+        between(y, cursor.y, secondaryCursor.y);
 
     return (
         <td
@@ -16,7 +21,9 @@ export default function Cell({ y, x, cell }) {
                     secondaryFocused &&
                     "outline outline-red-600 outline-3 rounded"
                 }
-                border border-opacity-20 border-white hover:bg-gray-700 relative
+                ${focusRange && "bg-gray-800"}
+                border border-opacity-20 border-white
+                hover:bg-gray-700 relative
                 ${cell.type === "number" && "type-number"}
                 ${cell.type === "special" && "type-special"}
                 ${cell.data?.[0] === "=" && "type-formula"}
