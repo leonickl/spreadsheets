@@ -59,6 +59,10 @@ export function functions() {
         return !a;
     }
 
+    function eq(x, y) {
+        return x == y;
+    }
+
     return {
         json,
         sum: listOr(sum),
@@ -74,6 +78,7 @@ export function functions() {
         and,
         or,
         not,
+        eq,
     };
 }
 
