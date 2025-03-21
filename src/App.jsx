@@ -279,8 +279,8 @@ export default function App() {
                 />
             </div>
 
-            <div className="w-full max-h-full overflow-auto">
-                <div className="w-full relative overflow-auto whitespace-nowrap">
+            <div className="w-full max-h-full ">
+                <div className="w-full relative  whitespace-nowrap">
                     <Spreadsheet />
                 </div>
             </div>

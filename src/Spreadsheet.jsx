@@ -11,13 +11,13 @@ export default function Spreadsheet() {
         <table className="w-full">
             <thead>
                 <tr>
-                    <th className="border border-white border-opacity-20 bg-gray-800 sticky left-0">
+                    <th className="border border-white border-opacity-20 bg-gray-800 sticky left-0 top-0 z-10">
                         <div className="min-h-9 min-w-24 px-5 py-2"></div>
                     </th>
 
                     {new Array(width + 1).fill(null).map((_, i) => (
                         <th
-                            className="border border-white border-opacity-20 bg-gray-800"
+                            className="border border-white border-opacity-20 bg-gray-800 sticky top-0 z-10"
                             key={i}
                         >
                             <div className="min-h-9 min-w-24 px-5 py-2 select-none">
@@ -31,7 +31,7 @@ export default function Spreadsheet() {
             <tbody>
                 {grid(table, cursor).map((row, i) => (
                     <tr key={i} className="relative">
-                        <th className="border border-white border-opacity-20 bg-gray-800 sticky left-0">
+                        <th className="border border-white border-opacity-20 bg-gray-800 sticky left-0 z-10">
                             <div className="min-h-9 min-w-24 px-5 py-2 select-none">
                                 {i}
                             </div>
