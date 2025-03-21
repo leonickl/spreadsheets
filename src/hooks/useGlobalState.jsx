@@ -52,11 +52,15 @@ export const GlobalStateProvider = ({ children }) => {
         setFile((file) => ({ ...file, filename }));
     }
 
-    function updateTable(y, x, props) {
+    function updateTable(y, x, props, overwrite = false) {
         if (table.find((cell) => cell.y == y && cell.x == x)) {
             setTable((table) =>
                 table.map((cell) =>
-                    cell.y == y && cell.x == x ? { ...cell, ...props } : cell
+                    cell.y == y && cell.x == x
+                        ? overwrite
+                            ? { x, y, ...props }
+                            : { ...cell, ...props }
+                        : cell
                 )
             );
         } else {

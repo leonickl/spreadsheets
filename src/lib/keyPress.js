@@ -146,15 +146,16 @@ export default function keyPress({
     }
 
     if (event.key === "c" || event.key === "C") {
-        setClipboard(cell);
+        console.log(cell);
+        setClipboard(cell ?? { data: null });
     }
 
     if (event.key === "x" || event.key === "X") {
-        setClipboard(cell);
+        setClipboard(cell ?? { data: null });
         removeFromTable(cell.y, cell.x);
     }
 
     if (event.key === "v" || event.key === "V") {
-        updateTable(cursor.y, cursor.x, without(clipboard, ["x", "y"]));
+        updateTable(cursor.y, cursor.x, without(clipboard, ["x", "y"]), true);
     }
 }
