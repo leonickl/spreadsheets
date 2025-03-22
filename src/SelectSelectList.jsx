@@ -11,7 +11,7 @@ export default function SelectSelectList() {
                     selectList: e.target.value,
                 })
             }
-            className="bg-gray-800 min-h-10 w-40 px-5 py-2 rounded-md border border-gray-400 focus:border-blue-700 focus:outline-blue-700"
+            className="h-full bg-gray-800 w-40 px-5 py-2 rounded-md border border-gray-400 focus:border-blue-700 focus:outline-blue-700"
         >
             <option></option>
             <option>animals</option>

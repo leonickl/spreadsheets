@@ -1,6 +1,7 @@
 import { useGlobalState } from "./hooks/useGlobalState";
 import evaluate from "./lib/evaluate";
 import { isEmail, isPhoneNumber, isURL } from "./lib/types";
+import SelectCellPreview from "./SelectCellPreview";
 
 export default function CellData({ cell }) {
     const { table, updateTable, cursor } = useGlobalState();
@@ -48,7 +49,7 @@ export default function CellData({ cell }) {
     }
 
     if (cell.type === "select" && Array.isArray(cell.data)) {
-        return <span className={classes}>{cell.data.join(", ")}</span>;
+        return <SelectCellPreview cell={cell} />;
     }
 
     if (cell.type === "special") {

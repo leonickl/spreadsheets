@@ -140,8 +140,8 @@ export default function App() {
                 />
             </div>
 
-            <div className="w-full flex flex-row gap-5">
-                <div className="grid items-center justify-center font-bold px-5">
+            <div className="w-full flex flex-row gap-5 h-16">
+                <div className="grid items-center justify-center font-bold px-5 h-full">
                     {letter(cursor.x) + cursor.y}
                 </div>
 
