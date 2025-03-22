@@ -1,11 +1,12 @@
 import Spreadsheet from "./Spreadsheet";
 import { letter } from "./lib/grid";
 import { useGlobalState } from "./hooks/useGlobalState";
-import { find } from "./lib/data";
 import { limit } from "./lib/cursor";
 import { useEffect, useRef, useState } from "react";
 import keyPress from "./lib/keyPress";
 import SelectCellType from "./SelectCellType";
+import SelectSelectList from "./SelectSelectList";
+import CellInput from "./CellInput";
 
 export default function App() {
     const fileInputRef = useRef(null);
@@ -14,6 +15,7 @@ export default function App() {
 
     const {
         cursor,
+        cell,
         setCursor,
         table,
         updateTable,
@@ -30,11 +32,6 @@ export default function App() {
         clipboard,
         setClipboard,
     } = useGlobalState();
-
-    const cell = find(table, cursor.y, cursor.x) ?? {
-        x: cursor.x,
-        y: cursor.y,
-    };
 
     useEffect(() => {
         const checkFocus = () => {
@@ -76,7 +73,7 @@ export default function App() {
         };
     }, [isFocused, cursor, table, secondaryCursor]);
 
-    useEffect(() => {}, []);
+    console.log(cell);
 
     if (!table) {
         return <p>loading...</p>;
@@ -148,23 +145,11 @@ export default function App() {
                     {letter(cursor.x) + cursor.y}
                 </div>
 
-                <input
-                    ref={inputRef}
-                    disabled={!cursor}
-                    value={(cursor && cell?.data) ?? ""}
-                    onChange={(e) =>
-                        updateTable(cursor.y, cursor.x, {
-                            data: e.target.value,
-                        })
-                    }
-                    className="bg-gray-800 min-h-10 w-full px-5 py-2 rounded-md border border-gray-400 focus:border-blue-700 focus:outline-blue-700"
-                />
+                <CellInput />
 
-                <SelectCellType
-                    cursor={cursor}
-                    cell={cell}
-                    updateTable={updateTable}
-                />
+                <SelectCellType />
+
+                {cell.type === "select" && <SelectSelectList />}
             </div>
 
             <div className="w-full max-h-full">

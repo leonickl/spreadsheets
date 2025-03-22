@@ -47,6 +47,10 @@ export default function CellData({ cell }) {
         );
     }
 
+    if (cell.type === "select" && Array.isArray(cell.data)) {
+        return <span className={classes}>{cell.data.join(", ")}</span>;
+    }
+
     if (cell.type === "special") {
         if (isEmail(cell.data)) {
             return (

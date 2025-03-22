@@ -15,7 +15,7 @@ export default function Cell({ y, x, cell }) {
         between(y, cursor.y, secondaryCursor.y);
 
     const classes = [
-        "border border-opacity-20 border-white hover:bg-gray-700 relative",
+        "border border-opacity-20 border-white hover:bg-gray-700 relative truncate",
         focused && "outline outline-blue-600 outline-3 rounded",
         secondaryFocused && "outline outline-red-600 outline-3 rounded",
         focusRange && "bg-gray-800",
@@ -35,9 +35,7 @@ export default function Cell({ y, x, cell }) {
             onMouseDown={() => setCursor({ y, x })}
             onDoubleClick={() => inputRef.current.focus()}
         >
-            <div
-                className={`min-h-9 min-w-24 w-full px-5 py-2 inline select-none`}
-            >
+            <div className={`min-h-9 min-w-24 px-5 py-2 inline select-none`}>
                 <CellData cell={cell} />
             </div>
         </td>

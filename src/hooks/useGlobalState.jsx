@@ -7,6 +7,7 @@ import React, {
     useState,
 } from "react";
 import { emptyTable } from "../lib/emptyTable";
+import { find } from "../lib/data";
 
 const GlobalStateContext = createContext();
 
@@ -39,6 +40,15 @@ export const GlobalStateProvider = ({ children }) => {
 
     const table = useMemo(() => file.body, [file]);
     const filename = useMemo(() => file.filename ?? "Spreadsheet", [file]);
+
+    const cell = useMemo(
+        () =>
+            find(table, cursor.y, cursor.x) ?? {
+                x: cursor.x,
+                y: cursor.y,
+            },
+        [table, cursor]
+    );
 
     function setTable(table) {
         if (Array.isArray(table)) {
@@ -138,6 +148,7 @@ export const GlobalStateProvider = ({ children }) => {
         <GlobalStateContext.Provider
             value={{
                 cursor,
+                cell,
                 setCursor,
                 table,
                 setTable,

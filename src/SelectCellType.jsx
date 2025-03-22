@@ -1,4 +1,8 @@
-export default function SelectCellType({ cursor, cell, updateTable }) {
+import { useGlobalState } from "./hooks/useGlobalState";
+
+export default function SelectCellType() {
+    const { cursor, cell, updateTable } = useGlobalState();
+    
     return (
         <select
             disabled={!cursor}
@@ -15,6 +19,7 @@ export default function SelectCellType({ cursor, cell, updateTable }) {
             <option>percent</option>
             <option>money</option>
             <option>special</option>
+            <option>select</option>
         </select>
     );
 }

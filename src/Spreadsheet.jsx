@@ -8,7 +8,7 @@ export default function Spreadsheet() {
     const [, width] = dimensions(table, cursor);
 
     return (
-        <table className="w-full">
+        <table className="w-full table-fixed">
             <thead>
                 <tr>
                     <th className="border border-white border-opacity-20 bg-gray-800 sticky left-0 top-0 z-10">
