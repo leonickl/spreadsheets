@@ -45,7 +45,7 @@ export default function App() {
             document.removeEventListener("focusin", checkFocus);
             document.removeEventListener("focusout", checkFocus);
         };
-    }, []);
+    }, [cursor]);
 
     useEffect(() => {
         const handleKeyPress = (event) => {
@@ -142,7 +142,11 @@ export default function App() {
 
             <div className="w-full flex flex-row gap-5 h-16">
                 <div className="grid items-center justify-center font-bold px-5 h-full">
-                    {letter(cursor.x) + cursor.y}
+                    {(secondaryCursor
+                        ? letter(secondaryCursor.x) + secondaryCursor.y + ":"
+                        : "") +
+                        letter(cursor.x) +
+                        cursor.y}
                 </div>
 
                 <CellInput />

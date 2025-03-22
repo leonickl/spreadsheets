@@ -40,11 +40,15 @@ export function letter(index) {
 }
 
 export function index(letter) {
+    if (!isNaN(parseInt(letter))) {
+        return letter;
+    }
+
     let index = 0;
 
     for (let i = 0; i < letter.length; i++) {
         index = index * 26 + (letter.charCodeAt(i) - 65 + 1);
     }
-    
+
     return index - 1; // Convert back to zero-based index
 }
