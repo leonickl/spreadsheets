@@ -27,6 +27,8 @@ export const GlobalStateProvider = ({ children }) => {
     const [changed, setChanged] = useState(false);
 
     const [socket, setSocket] = useState(null);
+    const [connected, setConnected] = useState(false);
+    const heartbeatTimeout = useRef(null);
 
     const inputRef = useRef();
 
@@ -46,10 +48,12 @@ export const GlobalStateProvider = ({ children }) => {
         fetchFile(uuid, setFile);
     }, [uuid]);
 
-    useEffect(() => {
+    const connectWebSocket = () => {
         const ws = new WebSocket("ws://localhost:3000/ws");
 
         ws.onopen = () => {
+            setConnected(true);
+
             ws.send(JSON.stringify({ status: "hello", client, uuid }));
         };
 
@@ -66,8 +70,9 @@ export const GlobalStateProvider = ({ children }) => {
                 return;
             }
 
-            if (status) {
-                console.log(status);
+            if (status === "alive") {
+                console.log("alive");
+                resetHeartbeat();
             }
 
             if (forUuid) {
@@ -79,15 +84,39 @@ export const GlobalStateProvider = ({ children }) => {
             }
         };
 
-        ws.onerror = (error) => console.error("WebSocket Error:", error);
-        ws.onclose = () => console.log("WebSocket Closed");
+        ws.onclose = () => {
+            console.log("Disconnected from server, attempting to reconnect...");
+            setConnected(false);
+            clearTimeout(heartbeatTimeout.current);
+            setTimeout(connectWebSocket, 8000);
+        };
 
         setSocket(ws);
+    };
+
+    useEffect(() => {
+        connectWebSocket();
 
         return () => {
-            ws.close();
+            if (socket) {
+                socket.close();
+            }
+
+            clearTimeout(heartbeatTimeout.current);
         };
-    }, [uuid, client]);
+    }, [uuid, client]); // Reconnect when file or user changes
+
+    const resetHeartbeat = () => {
+        console.log("heartbeat reset", { old: heartbeatTimeout.current });
+        clearTimeout(heartbeatTimeout.current);
+        heartbeatTimeout.current = setTimeout(checkHeartbeat, 6000);
+    };
+
+    const checkHeartbeat = () => {
+        console.log("Heartbeat timeout! Connection lost.");
+        setConnected(false);
+        socket?.close(); // Force reconnect
+    };
 
     function onCellChange(cell) {
         if (!socket) {
@@ -191,6 +220,7 @@ export const GlobalStateProvider = ({ children }) => {
                 showFileList,
                 setShowFileList,
                 handleDelete,
+                connected,
             }}
         >
             {children}

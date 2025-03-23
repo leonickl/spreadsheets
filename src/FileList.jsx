@@ -28,6 +28,7 @@ export default function FileList() {
                 <div className="m-5">
                     {fileList.map(([uuid, filename, cells]) => (
                         <div
+                            key={uuid}
                             className="flex flex-row gap-5 hover:underline cursor-pointer"
                             onClick={() => openTable(uuid)}
                         >
