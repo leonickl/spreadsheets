@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { emptyTable } from "../lib/emptyTable";
 import { find } from "../lib/data";
+import { deleteTable, fetchFile, storeTable } from "../lib/fetchFile";
 
 const GlobalStateContext = createContext();
 
@@ -16,21 +17,10 @@ export const GlobalStateProvider = ({ children }) => {
     const [cursor, setCursor] = useState({ x: 0, y: 0 });
     const [clipboard, setClipboard] = useState();
 
-    const [file, setFile] = useState(() => {
-        const stored = localStorage.getItem("file");
+    const [file, setFile] = useState(emptyTable);
+    const [uuid, setUuid] = useState(crypto.randomUUID());
 
-        if (!stored) {
-            return emptyTable;
-        }
-
-        const parsed = JSON.parse(localStorage.getItem("file"));
-
-        if (!parsed || parsed?.body?.length === 0) {
-            return emptyTable;
-        }
-
-        return parsed;
-    });
+    const [showFileList, setShowFileList] = useState(false);
 
     const [changed, setChanged] = useState(
         localStorage.getItem("changed") ?? false
@@ -38,8 +28,10 @@ export const GlobalStateProvider = ({ children }) => {
 
     const inputRef = useRef();
 
-    const table = useMemo(() => file.body, [file]);
-    const filename = useMemo(() => file.filename ?? "Spreadsheet", [file]);
+    console.log("attention", file, file?.body);
+
+    const table = useMemo(() => file?.body, [file]);
+    const filename = useMemo(() => file?.filename, [file]);
 
     const cell = useMemo(
         () =>
@@ -49,6 +41,15 @@ export const GlobalStateProvider = ({ children }) => {
             },
         [table, cursor]
     );
+
+    useEffect(() => {
+        fetchFile(uuid, wrapArrayIntoObject(setFile));
+    }, [uuid]);
+
+    function wrapArrayIntoObject(f) {
+        return (data) =>
+            Array.isArray(data) ? f({ filename: uuid, body: data }) : f(data);
+    }
 
     function setTable(table) {
         if (Array.isArray(table)) {
@@ -93,51 +94,26 @@ export const GlobalStateProvider = ({ children }) => {
         setChanged(false);
     }
 
-    function exportTable() {
+    async function saveTable() {
         const json = JSON.stringify(file, null, 2);
 
-        const blob = new Blob([json], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${filename}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
+        await storeTable(uuid, json);
 
         setChanged(false);
     }
 
-    function importTable(event) {
-        const file = event.target.files[0];
+    function openTable(newUuid) {
+        setUuid(newUuid);
+        setShowFileList(false);
+    }
 
-        if (file && file.type === "application/json") {
-            const reader = new FileReader();
-
-            reader.onload = () => {
-                try {
-                    const parsed = JSON.parse(reader.result);
-
-                    setFile(
-                        Array.isArray(parsed)
-                            ? {
-                                  filename: file.name.replace(".json", ""),
-                                  body: parsed,
-                              }
-                            : parsed
-                    );
-                } catch (error) {
-                    console.error("Error parsing JSON:", error);
-                }
-            };
-
-            reader.readAsText(file);
-        } else {
-            alert("Please upload a valid JSON file.");
-        }
+    function handleDelete() {
+        setUuid(crypto.randomUUID());
+        deleteTable(uuid);
     }
 
     useEffect(() => {
-        localStorage.setItem("file", JSON.stringify(file));
+        saveTable();
     }, [file]);
 
     useEffect(() => {
@@ -151,12 +127,11 @@ export const GlobalStateProvider = ({ children }) => {
                 cell,
                 setCursor,
                 table,
-                setTable,
                 updateTable,
                 dropTable,
                 removeFromTable,
-                exportTable,
-                importTable,
+                saveTable,
+                openTable,
                 filename,
                 setFilename,
                 changed,
@@ -166,6 +141,10 @@ export const GlobalStateProvider = ({ children }) => {
                 setSecondaryCursor,
                 clipboard,
                 setClipboard,
+                uuid,
+                showFileList,
+                setShowFileList,
+                handleDelete,
             }}
         >
             {children}

@@ -136,8 +136,6 @@ export default function keyPress({
 
         const last = column[column.length - 1] ?? { data: null };
 
-        console.log({ column, last });
-
         updateRange(
             { x: last.x, y: last.y + 1 },
             cursor,
@@ -146,7 +144,6 @@ export default function keyPress({
     }
 
     if (event.key === "c" || event.key === "C") {
-        console.log(cell);
         setClipboard(cell ?? { data: null });
     }
 

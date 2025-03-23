@@ -2,15 +2,14 @@ import Spreadsheet from "./Spreadsheet";
 import { letter } from "./lib/grid";
 import { useGlobalState } from "./hooks/useGlobalState";
 import { limit } from "./lib/cursor";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import keyPress from "./lib/keyPress";
 import SelectCellType from "./SelectCellType";
 import SelectSelectList from "./SelectSelectList";
 import CellInput from "./CellInput";
+import FileList from "./FileList";
 
 export default function App() {
-    const fileInputRef = useRef(null);
-
     const [isFocused, setIsFocused] = useState(false);
 
     const {
@@ -21,8 +20,7 @@ export default function App() {
         updateTable,
         dropTable,
         removeFromTable,
-        exportTable,
-        importTable,
+        saveTable,
         filename,
         setFilename,
         changed,
@@ -31,6 +29,10 @@ export default function App() {
         setSecondaryCursor,
         clipboard,
         setClipboard,
+        uuid,
+        showFileList,
+        setShowFileList,
+        handleDelete,
     } = useGlobalState();
 
     useEffect(() => {
@@ -73,8 +75,6 @@ export default function App() {
         };
     }, [isFocused, cursor, table, secondaryCursor]);
 
-    console.log(cell);
-
     if (!table) {
         return <p>loading...</p>;
     }
@@ -100,7 +100,7 @@ export default function App() {
 
                 <button
                     className="grid items-center justify-center font-bold px-5 bg-gray-700 hover:bg-blue-700 rounded text-3xl opacity-80"
-                    onClick={() => fileInputRef.current.click()}
+                    onClick={() => setShowFileList((curr) => !curr)}
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -118,7 +118,7 @@ export default function App() {
                     className={`grid items-center justify-center font-bold px-5 ${
                         changed ? "bg-orange-700" : "bg-gray-700"
                     } hover:bg-purple-700 rounded text-3xl opacity-80`}
-                    onClick={exportTable}
+                    onClick={saveTable}
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -133,11 +133,29 @@ export default function App() {
                     </svg>
                 </button>
 
+                <button
+                    className={`grid items-center justify-center font-bold px-5 bg-gray-700 hover:bg-red-700 rounded text-3xl opacity-80`}
+                    onClick={handleDelete}
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        fill="currentColor"
+                        class="bi bi-trash3-fill"
+                        viewBox="0 0 16 16"
+                    >
+                        <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528M8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5" />
+                    </svg>
+                </button>
+
                 <input
                     value={filename}
                     onChange={(e) => setFilename(e.target.value)}
                     className="bg-gray-800 min-h-10 w-max px-5 py-2 rounded-md border border-gray-400 focus:border-blue-700 focus:outline-blue-700"
                 />
+
+                <p>UUID: {uuid}</p>
             </div>
 
             <div className="w-full flex flex-row gap-5 h-16">
@@ -162,13 +180,7 @@ export default function App() {
                 </div>
             </div>
 
-            <input
-                type="file"
-                accept=".json"
-                onChange={importTable}
-                ref={fileInputRef}
-                style={{ display: "none" }}
-            />
+            {showFileList && <FileList />}
         </div>
     );
 }
