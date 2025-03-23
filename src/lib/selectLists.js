@@ -13,3 +13,14 @@ export const colors = [
     "bg-pink-300 text-pink-900",
     "bg-blue-300 text-blue-900",
 ];
+
+export function coloredItems(listName) {
+    const items = selectLists[listName];
+    const coloredItems = [];
+
+    for (let i = 0; i < items.length; i++) {
+        coloredItems.push([items[i], colors[i % colors.length]]);
+    }
+
+    return Object.fromEntries(coloredItems);
+}
