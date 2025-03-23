@@ -28,6 +28,7 @@ export const GlobalStateProvider = ({ children }) => {
     );
 
     const [showFileList, setShowFileList] = useState(false);
+    const [showSelectLists, setShowSelectLists] = useState(false);
     const [changed, setChanged] = useState(false);
 
     const [socket, setSocket] = useState(null);
@@ -38,6 +39,7 @@ export const GlobalStateProvider = ({ children }) => {
 
     const table = useMemo(() => file?.body, [file]);
     const filename = useMemo(() => file?.filename, [file]);
+    const selectLists = useMemo(() => file?.selectLists ?? {}, [file]);
 
     const cell = useMemo(
         () => find(table, cursor.y, cursor.x) ?? cursor,
@@ -83,6 +85,7 @@ export const GlobalStateProvider = ({ children }) => {
                 uuid: forUuid,
                 cell,
                 filename,
+                selectLists,
                 client: byClient,
             } = JSON.parse(event.data);
 
@@ -102,6 +105,10 @@ export const GlobalStateProvider = ({ children }) => {
 
             if (filename && uuid === forUuid) {
                 setFilename(filename, false);
+            }
+
+            if (selectLists && uuid === forUuid) {
+                setSelectLists(() => selectLists, false);
             }
         };
 
@@ -147,6 +154,20 @@ export const GlobalStateProvider = ({ children }) => {
 
         if (pushToServer) {
             socket.send(JSON.stringify({ filename, client, uuid }));
+        }
+    }
+
+    function setSelectLists(selectLists, pushToServer = true) {
+        console.log(selectLists);
+        const lists = selectLists(file.selectLists ?? {});
+
+        setFile((file) => ({
+            ...file,
+            selectLists: lists,
+        }));
+
+        if (pushToServer) {
+            socket.send(JSON.stringify({ selectLists: lists, client, uuid }));
         }
     }
 
@@ -236,6 +257,11 @@ export const GlobalStateProvider = ({ children }) => {
                 setShowFileList,
                 handleDelete,
                 connected,
+                showSelectLists,
+                setShowSelectLists,
+                file,
+                selectLists,
+                setSelectLists,
             }}
         >
             {children}

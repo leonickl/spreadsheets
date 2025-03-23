@@ -1,6 +1,6 @@
 export const selectLists = {
     people: ["Anton", "Berta", "Caesar", "Dora"],
-    animals: ["Cat", "Dog", "Hound", "Giraffe", "Monkey", "Cow", "Ox"],
+    animals: ["Cat", "Dog", "Giraffe", "Monkey", "Cow", "Ox"],
 };
 
 export const colors = [
@@ -14,11 +14,13 @@ export const colors = [
     "bg-blue-300 text-blue-900",
 ];
 
-export function coloredItems(listName) {
-    const items = selectLists[listName];
+export const gray = "bg-gray-300 text-gray-900";
+
+export function coloredItems(listName, lists = selectLists) {
+    const items = lists[listName];
     const coloredItems = [];
 
-    for (let i = 0; i < items.length; i++) {
+    for (let i = 0; i < items?.length; i++) {
         coloredItems.push([items[i], colors[i % colors.length]]);
     }
 

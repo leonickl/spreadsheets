@@ -1,9 +1,9 @@
 import { useGlobalState } from "./hooks/useGlobalState";
-import { colors, selectLists } from "./lib/selectLists";
+import { colors } from "./lib/selectLists";
 import SelectItem from "./SelectItem";
 
 export default function CellInputSelect() {
-    const { cell, updateTable, cursor } = useGlobalState();
+    const { cell, updateTable, cursor, selectLists } = useGlobalState();
 
     if (!Array.isArray(cell.data)) {
         updateTable(cursor.y, cursor.x, {

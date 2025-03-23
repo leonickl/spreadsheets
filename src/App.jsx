@@ -8,6 +8,14 @@ import SelectCellType from "./SelectCellType";
 import SelectSelectList from "./SelectSelectList";
 import CellInput from "./CellInput";
 import FileList from "./FileList";
+import SelectLists from "./SelectLists";
+import {
+    FloppyFill,
+    FolderFill,
+    Trash3Fill,
+    UiChecksGrid,
+    XCircleFill,
+} from "react-bootstrap-icons";
 
 export default function App() {
     const [isFocused, setIsFocused] = useState(false);
@@ -34,6 +42,8 @@ export default function App() {
         setShowFileList,
         handleDelete,
         connected,
+        showSelectLists,
+        setShowSelectLists,
     } = useGlobalState();
 
     useEffect(() => {
@@ -52,6 +62,10 @@ export default function App() {
 
     useEffect(() => {
         const handleKeyPress = (event) => {
+            if (showFileList || showSelectLists) {
+                return;
+            }
+
             keyPress({
                 event,
                 updateTable,
@@ -69,6 +83,7 @@ export default function App() {
                 setClipboard,
             });
         };
+
         document.addEventListener("keydown", handleKeyPress);
 
         return () => {
@@ -87,32 +102,14 @@ export default function App() {
                     className="grid items-center justify-center font-bold px-5 bg-gray-700 hover:bg-red-700 rounded text-3xl opacity-80"
                     onClick={closeTable}
                 >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        fill="currentColor"
-                        className="bi bi-x-circle-fill"
-                        viewBox="0 0 16 16"
-                    >
-                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z" />
-                    </svg>
+                    <XCircleFill width={16} />
                 </button>
 
                 <button
                     className="grid items-center justify-center font-bold px-5 bg-gray-700 hover:bg-blue-700 rounded text-3xl opacity-80"
                     onClick={() => setShowFileList((curr) => !curr)}
                 >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        fill="currentColor"
-                        className="bi bi-folder-fill"
-                        viewBox="0 0 16 16"
-                    >
-                        <path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.825a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3m-8.322.12q.322-.119.684-.12h5.396l-.707-.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981z" />
-                    </svg>
+                    <FolderFill width={16} />
                 </button>
 
                 <button
@@ -121,33 +118,21 @@ export default function App() {
                     } hover:bg-purple-700 rounded text-3xl opacity-80`}
                     onClick={saveTable}
                 >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        fill="currentColor"
-                        className="bi bi-floppy-fill"
-                        viewBox="0 0 16 16"
-                    >
-                        <path d="M0 1.5A1.5 1.5 0 0 1 1.5 0H3v5.5A1.5 1.5 0 0 0 4.5 7h7A1.5 1.5 0 0 0 13 5.5V0h.086a1.5 1.5 0 0 1 1.06.44l1.415 1.414A1.5 1.5 0 0 1 16 2.914V14.5a1.5 1.5 0 0 1-1.5 1.5H14v-5.5A1.5 1.5 0 0 0 12.5 9h-9A1.5 1.5 0 0 0 2 10.5V16h-.5A1.5 1.5 0 0 1 0 14.5z" />
-                        <path d="M3 16h10v-5.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5zm9-16H4v5.5a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5zM9 1h2v4H9z" />
-                    </svg>
+                    <FloppyFill width={16} />
                 </button>
 
                 <button
                     className={`grid items-center justify-center font-bold px-5 bg-gray-700 hover:bg-red-700 rounded text-3xl opacity-80`}
                     onClick={handleDelete}
                 >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        fill="currentColor"
-                        className="bi bi-trash3-fill"
-                        viewBox="0 0 16 16"
-                    >
-                        <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528M8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5" />
-                    </svg>
+                    <Trash3Fill width={16} />
+                </button>
+
+                <button
+                    className={`grid items-center justify-center font-bold px-5 bg-gray-700 hover:bg-yellow-700 rounded text-3xl opacity-80`}
+                    onClick={() => setShowSelectLists(true)}
+                >
+                    <UiChecksGrid width={16} />
                 </button>
 
                 <div
@@ -192,6 +177,7 @@ export default function App() {
             </div>
 
             {showFileList && <FileList />}
+            {showSelectLists && <SelectLists />}
         </div>
     );
 }

@@ -33,9 +33,8 @@ wss.on("connection", (ws) => {
     ws.send(JSON.stringify({ status: "alive" }));
 
     ws.on("message", (message) => {
-        const { cell, client, status, uuid, filename } = JSON.parse(
-            message.toString()
-        );
+        const { cell, client, status, uuid, filename, selectLists } =
+            JSON.parse(message.toString());
 
         if (status === "hello" && uuid) {
             clients.set(ws, uuid);
@@ -95,6 +94,33 @@ wss.on("connection", (ws) => {
             wss.clients.forEach((c) => {
                 if (clients.get(c) === uuid && c.readyState === 1) {
                     c.send(JSON.stringify({ uuid, filename, client }));
+                }
+            });
+        }
+
+        if (selectLists && client && uuid) {
+            const path = "./data/" + uuid + ".json";
+
+            if (!fs.existsSync(path)) {
+                console.error(`file ${uuid} does not exist`);
+                return;
+            }
+
+            const file = JSON.parse(fs.readFileSync(path));
+
+            const newFile = { ...file, selectLists };
+
+            fs.writeFileSync(path, JSON.stringify(newFile));
+
+            console.log(
+                `client ${client} changed selectLists ${uuid}: ${JSON.stringify(
+                    selectLists
+                )}`
+            );
+
+            wss.clients.forEach((c) => {
+                if (clients.get(c) === uuid && c.readyState === 1) {
+                    c.send(JSON.stringify({ uuid, selectLists, client }));
                 }
             });
         }
