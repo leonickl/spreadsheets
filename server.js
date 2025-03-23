@@ -33,7 +33,9 @@ wss.on("connection", (ws) => {
     ws.send(JSON.stringify({ status: "alive" }));
 
     ws.on("message", (message) => {
-        const { cell, client, status, uuid } = JSON.parse(message.toString());
+        const { cell, client, status, uuid, filename } = JSON.parse(
+            message.toString()
+        );
 
         if (status === "hello" && uuid) {
             clients.set(ws, uuid);
@@ -42,9 +44,14 @@ wss.on("connection", (ws) => {
         }
 
         if (cell && client && uuid) {
-            const filename = "./data/" + uuid + ".json";
+            const path = "./data/" + uuid + ".json";
 
-            const file = JSON.parse(fs.readFileSync(filename));
+            if (!fs.existsSync(path)) {
+                console.error(`file ${uuid} does not exist`);
+                return;
+            }
+
+            const file = JSON.parse(fs.readFileSync(path));
             const body = file.body ?? [];
 
             const newBody = [
@@ -54,7 +61,7 @@ wss.on("connection", (ws) => {
 
             const newFile = { ...file, body: newBody };
 
-            fs.writeFileSync(filename, JSON.stringify(newFile));
+            fs.writeFileSync(path, JSON.stringify(newFile));
 
             console.log(
                 `client ${client} changed file ${uuid}: ${JSON.stringify(cell)}`
@@ -63,6 +70,31 @@ wss.on("connection", (ws) => {
             wss.clients.forEach((c) => {
                 if (clients.get(c) === uuid && c.readyState === 1) {
                     c.send(JSON.stringify({ uuid, cell, client }));
+                }
+            });
+        }
+
+        if (filename && client && uuid) {
+            const path = "./data/" + uuid + ".json";
+
+            if (!fs.existsSync(path)) {
+                console.error(`file ${uuid} does not exist`);
+                return;
+            }
+
+            const file = JSON.parse(fs.readFileSync(path));
+
+            const newFile = { ...file, filename };
+
+            fs.writeFileSync(path, JSON.stringify(newFile));
+
+            console.log(
+                `client ${client} changed filename ${uuid}: ${filename}`
+            );
+
+            wss.clients.forEach((c) => {
+                if (clients.get(c) === uuid && c.readyState === 1) {
+                    c.send(JSON.stringify({ uuid, filename, client }));
                 }
             });
         }
@@ -95,17 +127,19 @@ app.get("/files", (req, res) => {
             .map((uuid) => {
                 const file = JSON.parse(fs.readFileSync("./data/" + uuid));
 
-                const details = [
-                    uuid.replace(".json", ""),
-                    file?.filename,
-                    file?.body?.length,
-                ];
+                const cellsWithContent = (file?.body ?? []).filter(
+                    (cell) => cell.data
+                );
 
-                if (details[2] === 1 && !file.body[0].data) {
+                if (cellsWithContent.length === 0) {
                     return null;
                 }
 
-                return details;
+                return [
+                    uuid.replace(".json", ""),
+                    file?.filename,
+                    cellsWithContent.length,
+                ];
             })
             .filter((x) => x)
     );
@@ -122,7 +156,7 @@ app.get("/files/:uuid", (req, res) => {
     const filename = "./data/" + file + ".json";
 
     if (!fs.existsSync(filename)) {
-        fs.writeFileSync(filename, JSON.stringify(emptyTable));
+        return { ok: false, msg: "file does not exist" };
     }
 
     const raw = fs.readFileSync(filename).toString();

@@ -18,10 +18,14 @@ export const GlobalStateProvider = ({ children }) => {
 
     const [clipboard, setClipboard] = useState();
 
-    const [client, setClient] = useState(crypto.randomUUID());
+    const [client, setClient] = useState(
+        sessionStorage.getItem("client") ?? crypto.randomUUID()
+    );
 
     const [file, setFile] = useState(emptyTable);
-    const [uuid, setUuid] = useState(crypto.randomUUID());
+    const [uuid, setUuid] = useState(
+        sessionStorage.getItem("uuid") ?? crypto.randomUUID()
+    );
 
     const [showFileList, setShowFileList] = useState(false);
     const [changed, setChanged] = useState(false);
@@ -36,11 +40,7 @@ export const GlobalStateProvider = ({ children }) => {
     const filename = useMemo(() => file?.filename, [file]);
 
     const cell = useMemo(
-        () =>
-            find(table, cursor.y, cursor.x) ?? {
-                x: cursor.x,
-                y: cursor.y,
-            },
+        () => find(table, cursor.y, cursor.x) ?? cursor,
         [table, cursor]
     );
 
@@ -48,7 +48,27 @@ export const GlobalStateProvider = ({ children }) => {
         fetchFile(uuid, setFile);
     }, [uuid]);
 
-    const connectWebSocket = () => {
+    useEffect(() => {
+        sessionStorage.setItem("client", client);
+    }, [client]);
+
+    useEffect(() => {
+        sessionStorage.setItem("uuid", uuid);
+    }, [uuid]);
+
+    useEffect(() => {
+        connectWebSocket();
+
+        return () => {
+            if (socket) {
+                socket.close();
+            }
+
+            clearTimeout(heartbeatTimeout.current);
+        };
+    }, [uuid, client]); // Reconnect when file or user changes
+
+    function connectWebSocket() {
         const ws = new WebSocket("ws://localhost:3000/ws");
 
         ws.onopen = () => {
@@ -62,6 +82,7 @@ export const GlobalStateProvider = ({ children }) => {
                 status,
                 uuid: forUuid,
                 cell,
+                filename,
                 client: byClient,
             } = JSON.parse(event.data);
 
@@ -82,6 +103,10 @@ export const GlobalStateProvider = ({ children }) => {
             if (cell && uuid === forUuid) {
                 updateTable(cell.y, cell.x, cell, true);
             }
+
+            if (filename && uuid === forUuid) {
+                setFilename(filename, false);
+            }
         };
 
         ws.onclose = () => {
@@ -92,31 +117,19 @@ export const GlobalStateProvider = ({ children }) => {
         };
 
         setSocket(ws);
-    };
+    }
 
-    useEffect(() => {
-        connectWebSocket();
-
-        return () => {
-            if (socket) {
-                socket.close();
-            }
-
-            clearTimeout(heartbeatTimeout.current);
-        };
-    }, [uuid, client]); // Reconnect when file or user changes
-
-    const resetHeartbeat = () => {
-        console.log("heartbeat reset", { old: heartbeatTimeout.current });
+    function resetHeartbeat() {
+        console.log("heartbeat reset");
         clearTimeout(heartbeatTimeout.current);
         heartbeatTimeout.current = setTimeout(checkHeartbeat, 6000);
-    };
+    }
 
-    const checkHeartbeat = () => {
+    function checkHeartbeat() {
         console.log("Heartbeat timeout! Connection lost.");
         setConnected(false);
         socket?.close(); // Force reconnect
-    };
+    }
 
     function onCellChange(cell) {
         if (!socket) {
@@ -131,8 +144,12 @@ export const GlobalStateProvider = ({ children }) => {
         setFile((file) => ({ ...file, body: table(file.body) }));
     }
 
-    function setFilename(filename) {
+    function setFilename(filename, pushToServer = true) {
         setFile((file) => ({ ...file, filename }));
+
+        if (pushToServer) {
+            socket.send(JSON.stringify({ filename, client, uuid }));
+        }
     }
 
     function updateTable(y, x, props, overwrite = false) {
