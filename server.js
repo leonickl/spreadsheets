@@ -1,8 +1,10 @@
 import express from "express";
 import { Server } from "https";
+import { createServer } from "http";
 import fs from "fs";
 import cors from "cors";
 import { emptyTable } from "./src/lib/emptyTable.js";
+import { WebSocketServer } from "ws";
 
 ("use strict");
 
@@ -19,6 +21,57 @@ if (!fs.existsSync("./trash")) {
 }
 
 const app = express();
+const server = createServer(app);
+
+const wss = new WebSocketServer({ server, path: "/ws" });
+
+const clients = new Map();
+
+wss.on("connection", (ws) => {
+    // now and then every 5 seconds
+    setInterval(() => ws.send(JSON.stringify({ status: "alive" })), 5000);
+    ws.send(JSON.stringify({ status: "alive" }));
+
+    ws.on("message", (message) => {
+        const { cell, client, status, uuid } = JSON.parse(message.toString());
+
+        if (status === "hello" && uuid) {
+            clients.set(ws, uuid);
+
+            console.log(`client ${client} joined file ${uuid}`);
+        }
+
+        if (cell && client && uuid) {
+            const filename = "./data/" + uuid + ".json";
+
+            const file = JSON.parse(fs.readFileSync(filename));
+            const body = file.body ?? [];
+
+            const newBody = [
+                ...body.filter((c) => !(c.x == cell.x && c.y == cell.y)),
+                cell,
+            ];
+
+            const newFile = { ...file, body: newBody };
+
+            fs.writeFileSync(filename, JSON.stringify(newFile));
+
+            console.log(
+                `client ${client} changed file ${uuid}: ${JSON.stringify(cell)}`
+            );
+
+            wss.clients.forEach((c) => {
+                if (clients.get(c) === uuid && c.readyState === 1) {
+                    c.send(JSON.stringify({ uuid, cell, client }));
+                }
+            });
+        }
+    });
+
+    ws.on("close", () => {
+        console.log("client left");
+    });
+});
 
 app.use(
     cors({
@@ -42,21 +95,13 @@ app.get("/files", (req, res) => {
             .map((uuid) => {
                 const file = JSON.parse(fs.readFileSync("./data/" + uuid));
 
-                const details = Array.isArray(file)
-                    ? [
-                          uuid.replace(".json", ""),
-                          uuid.replace(".json", ""),
-                          file?.length,
-                      ]
-                    : [
-                          uuid.replace(".json", ""),
-                          file?.filename,
-                          file?.body?.length,
-                      ];
+                const details = [
+                    uuid.replace(".json", ""),
+                    file?.filename,
+                    file?.body?.length,
+                ];
 
-                const body = Array.isArray(file) ? file : file.body;
-
-                if (details[2] === 1 && !body[0].data) {
+                if (details[2] === 1 && !file.body[0].data) {
                     return null;
                 }
 
@@ -121,17 +166,17 @@ app.delete("/files/:uuid", (req, res) => {
     res.json({ ok: true });
 });
 
-const server = app.listen(3000, function () {
+const expressServer = server.listen(3000, function () {
     const address =
-        server.address().address === "::"
+        expressServer.address().address === "::"
             ? "localhost"
-            : server.address().address;
+            : expressServer.address().address;
 
-    const protocol = server instanceof Server ? "https" : "http";
+    const protocol = expressServer instanceof Server ? "https" : "http";
 
     console.log(
         `Express server listening on ${protocol}://${address}:${
-            server.address().port
+            expressServer.address().port
         }`
     );
 });

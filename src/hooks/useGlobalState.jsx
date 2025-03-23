@@ -15,11 +15,18 @@ const GlobalStateContext = createContext();
 export const GlobalStateProvider = ({ children }) => {
     const [secondaryCursor, setSecondaryCursor] = useState();
     const [cursor, setCursor] = useState({ x: 0, y: 0 });
+
     const [clipboard, setClipboard] = useState();
+
+    const [client, setClient] = useState(crypto.randomUUID());
+
     const [file, setFile] = useState(emptyTable);
     const [uuid, setUuid] = useState(crypto.randomUUID());
+
     const [showFileList, setShowFileList] = useState(false);
     const [changed, setChanged] = useState(false);
+
+    const [socket, setSocket] = useState(null);
 
     const inputRef = useRef();
 
@@ -36,23 +43,62 @@ export const GlobalStateProvider = ({ children }) => {
     );
 
     useEffect(() => {
-        fetchFile(uuid, wrapArrayIntoObject(setFile));
+        fetchFile(uuid, setFile);
     }, [uuid]);
 
-    function onCellChange(cell) {
-        console.log({ cell });
-    }
+    useEffect(() => {
+        const ws = new WebSocket("ws://localhost:3000/ws");
 
-    function wrapArrayIntoObject(f) {
-        return (data) =>
-            Array.isArray(data) ? f({ filename: uuid, body: data }) : f(data);
+        ws.onopen = () => {
+            ws.send(JSON.stringify({ status: "hello", client, uuid }));
+        };
+
+        ws.onmessage = (event) => {
+            const {
+                status,
+                uuid: forUuid,
+                cell,
+                client: byClient,
+            } = JSON.parse(event.data);
+
+            if (byClient === client) {
+                console.log("you");
+                return;
+            }
+
+            if (status) {
+                console.log(status);
+            }
+
+            if (forUuid) {
+                console.log(uuid, forUuid);
+            }
+
+            if (cell && uuid === forUuid) {
+                updateTable(cell.y, cell.x, cell, true);
+            }
+        };
+
+        ws.onerror = (error) => console.error("WebSocket Error:", error);
+        ws.onclose = () => console.log("WebSocket Closed");
+
+        setSocket(ws);
+
+        return () => {
+            ws.close();
+        };
+    }, [uuid, client]);
+
+    function onCellChange(cell) {
+        if (!socket) {
+            console.error("socket uninitialized");
+            return;
+        }
+
+        socket.send(JSON.stringify({ cell, client, uuid }));
     }
 
     function setTable(table) {
-        if (Array.isArray(table)) {
-            return setFile((file) => ({ ...file, body: table }));
-        }
-
         setFile((file) => ({ ...file, body: table(file.body) }));
     }
 
@@ -120,10 +166,6 @@ export const GlobalStateProvider = ({ children }) => {
         setUuid(crypto.randomUUID());
         deleteTable(uuid);
     }
-
-    // useEffect(() => {
-    //     saveTable();
-    // }, [file]);
 
     return (
         <GlobalStateContext.Provider

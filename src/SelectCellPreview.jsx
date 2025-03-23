@@ -5,6 +5,7 @@ export default function SelectCellPreview({ cell }) {
         <div className="flex flex-row gap-5 items-center justify-center">
             {cell.data?.map((item, index) => (
                 <div
+                    key={item}
                     className={`px-2 py-0 rounded ${
                         colors[index % colors.length]
                     }`}
