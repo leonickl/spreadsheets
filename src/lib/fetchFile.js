@@ -14,8 +14,6 @@ export async function fetchFile(uuid, setFile) {
         return;
     }
 
-    console.log({ file });
-
     setFile(file);
 }
 

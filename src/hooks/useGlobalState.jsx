@@ -87,17 +87,13 @@ export const GlobalStateProvider = ({ children }) => {
             } = JSON.parse(event.data);
 
             if (byClient === client) {
-                console.log("you");
+                console.debug("you");
                 return;
             }
 
             if (status === "alive") {
-                console.log("alive");
+                console.debug("alive");
                 resetHeartbeat();
-            }
-
-            if (forUuid) {
-                console.log(uuid, forUuid);
             }
 
             if (cell && uuid === forUuid) {
@@ -110,7 +106,9 @@ export const GlobalStateProvider = ({ children }) => {
         };
 
         ws.onclose = () => {
-            console.log("Disconnected from server, attempting to reconnect...");
+            console.debug(
+                "Disconnected from server, attempting to reconnect..."
+            );
             setConnected(false);
             clearTimeout(heartbeatTimeout.current);
             setTimeout(connectWebSocket, 8000);
@@ -120,13 +118,13 @@ export const GlobalStateProvider = ({ children }) => {
     }
 
     function resetHeartbeat() {
-        console.log("heartbeat reset");
+        console.debug("heartbeat reset");
         clearTimeout(heartbeatTimeout.current);
         heartbeatTimeout.current = setTimeout(checkHeartbeat, 6000);
     }
 
     function checkHeartbeat() {
-        console.log("Heartbeat timeout! Connection lost.");
+        console.debug("Heartbeat timeout! Connection lost.");
         setConnected(false);
         socket?.close(); // Force reconnect
     }

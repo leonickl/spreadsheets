@@ -15,8 +15,6 @@ export default function FileList() {
         return <p>loading...</p>;
     }
 
-    console.log(fileList);
-
     return (
         <div className="fixed top-0 left-0 h-screen w-screen flex flex-col items-center justify-center z-20">
             <div
