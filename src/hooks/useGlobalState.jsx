@@ -16,19 +16,12 @@ export const GlobalStateProvider = ({ children }) => {
     const [secondaryCursor, setSecondaryCursor] = useState();
     const [cursor, setCursor] = useState({ x: 0, y: 0 });
     const [clipboard, setClipboard] = useState();
-
     const [file, setFile] = useState(emptyTable);
     const [uuid, setUuid] = useState(crypto.randomUUID());
-
     const [showFileList, setShowFileList] = useState(false);
-
-    const [changed, setChanged] = useState(
-        localStorage.getItem("changed") ?? false
-    );
+    const [changed, setChanged] = useState(false);
 
     const inputRef = useRef();
-
-    console.log("attention", file, file?.body);
 
     const table = useMemo(() => file?.body, [file]);
     const filename = useMemo(() => file?.filename, [file]);
@@ -45,6 +38,10 @@ export const GlobalStateProvider = ({ children }) => {
     useEffect(() => {
         fetchFile(uuid, wrapArrayIntoObject(setFile));
     }, [uuid]);
+
+    function onCellChange(cell) {
+        console.log({ cell });
+    }
 
     function wrapArrayIntoObject(f) {
         return (data) =>
@@ -66,16 +63,26 @@ export const GlobalStateProvider = ({ children }) => {
     function updateTable(y, x, props, overwrite = false) {
         if (table.find((cell) => cell.y == y && cell.x == x)) {
             setTable((table) =>
-                table.map((cell) =>
-                    cell.y == y && cell.x == x
-                        ? overwrite
-                            ? { x, y, ...props }
-                            : { ...cell, ...props }
-                        : cell
-                )
+                table.map((cell) => {
+                    if (!(cell.y == y && cell.x == x)) {
+                        return cell;
+                    }
+
+                    const newCell = overwrite
+                        ? { x, y, ...props }
+                        : { ...cell, ...props };
+
+                    onCellChange(newCell);
+
+                    return newCell;
+                })
             );
         } else {
-            setTable((table) => [...table, { y, x, ...props }]);
+            const newCell = { y, x, ...props };
+
+            setTable((table) => [...table, newCell]);
+
+            onCellChange(newCell);
         }
 
         setChanged(true);
@@ -83,13 +90,15 @@ export const GlobalStateProvider = ({ children }) => {
 
     function removeFromTable(y, x) {
         setTable((table) =>
-            table.filter((cell) => !(cell.y == y && cell.x == x))
+            table.map((cell) => (cell.y == y && cell.x == x ? { x, y } : cell))
         );
+
+        onCellChange({ x, y });
 
         setChanged(true);
     }
 
-    function dropTable() {
+    function closeTable() {
         setFile(emptyTable);
         setChanged(false);
     }
@@ -112,13 +121,9 @@ export const GlobalStateProvider = ({ children }) => {
         deleteTable(uuid);
     }
 
-    useEffect(() => {
-        saveTable();
-    }, [file]);
-
-    useEffect(() => {
-        localStorage.setItem("changed", changed);
-    }, [changed]);
+    // useEffect(() => {
+    //     saveTable();
+    // }, [file]);
 
     return (
         <GlobalStateContext.Provider
@@ -128,14 +133,13 @@ export const GlobalStateProvider = ({ children }) => {
                 setCursor,
                 table,
                 updateTable,
-                dropTable,
+                closeTable,
                 removeFromTable,
                 saveTable,
                 openTable,
                 filename,
                 setFilename,
                 changed,
-                setChanged,
                 inputRef,
                 secondaryCursor,
                 setSecondaryCursor,
