@@ -8,7 +8,7 @@ export default function SelectCellPreview({ cell }) {
 
     return (
         <div className="flex flex-row gap-5 items-center justify-center">
-            {cell.data?.map((item) => (
+            {(cell.data ?? []).map((item) => (
                 <div
                     key={item}
                     className={`px-2 py-0 rounded ${colored[item] ?? gray}`}

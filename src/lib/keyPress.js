@@ -1,4 +1,5 @@
 import { find } from "./data";
+import { notnull } from "./notnull";
 
 export default function keyPress({
     event,
@@ -147,7 +148,10 @@ export default function keyPress({
     if (event.key === "f" && cursor && !secondaryCursor) {
         const column = table
             .filter(
-                (cell) => cell.x == cursor.x && cell.data && cell.y < cursor.y
+                (cell) =>
+                    cell.x == cursor.x &&
+                    notnull(cell.data) &&
+                    cell.y < cursor.y
             )
             .sort((one, other) => one.y - other.y);
 

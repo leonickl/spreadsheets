@@ -1,5 +1,6 @@
 import { useGlobalState } from "./hooks/useGlobalState";
 import CellInputSelect from "./CellInputSelect";
+import { notnull } from "./lib/notnull";
 
 export default function CellInput() {
     const { inputRef, cursor, cell, updateTable } = useGlobalState();
@@ -10,7 +11,7 @@ export default function CellInput() {
         <input
             ref={inputRef}
             disabled={!cursor}
-            value={(cursor && cell?.data) ?? ""}
+            value={(cell && notnull(cell.data) ? cell.data : "") ?? ""}
             onChange={(e) =>
                 updateTable(cursor.y, cursor.x, {
                     data: e.target.value,

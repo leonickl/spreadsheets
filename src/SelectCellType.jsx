@@ -1,4 +1,5 @@
 import { useGlobalState } from "./hooks/useGlobalState";
+import { isnull } from "./lib/notnull";
 
 export default function SelectCellType() {
     const { cursor, cell, updateTable } = useGlobalState();
@@ -12,7 +13,7 @@ export default function SelectCellType() {
                     type: e.target.value,
                 });
 
-                if (e.target.value === "checkbox" && !cell.data) {
+                if (e.target.value === "checkbox" && isnull(cell.data)) {
                     updateTable(cursor.y, cursor.x, {
                         data: 0,
                     });

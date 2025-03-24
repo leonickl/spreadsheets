@@ -1,12 +1,14 @@
+import { notnull } from "./notnull";
+
 export function dimensions(table, cursor) {
     return [
         Math.max(
-            ...table.filter((cell) => cell.data).map((data) => data.y),
+            ...table.filter((cell) => notnull(cell.data)).map((data) => data.y),
             cursor.y,
             10
         ),
         Math.max(
-            ...table.filter((cell) => cell.data).map((data) => data.x),
+            ...table.filter((cell) => notnull(cell.data)).map((data) => data.x),
             cursor.x,
             5
         ),
@@ -27,7 +29,7 @@ export function grid(table, cursor) {
     }
 
     table
-        .filter((cell) => cell.data)
+        .filter((cell) => notnull(cell.data))
         .forEach((cell) => {
             grid[cell.y][cell.x] = cell;
         });

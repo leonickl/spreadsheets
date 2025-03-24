@@ -5,6 +5,7 @@ import fs from "fs";
 import cors from "cors";
 import { WebSocketServer } from "ws";
 import { merge } from "./src/lib/merge.js";
+import { notnull } from "./src/lib/notnull.js";
 
 ("use strict");
 
@@ -148,7 +149,7 @@ app.get("/files", (req, res) => {
                 const file = JSON.parse(fs.readFileSync("./data/" + uuid));
 
                 const cellsWithContent = (file?.body ?? []).filter(
-                    (cell) => cell.data
+                    (cell) => notnull(cell.data)
                 );
 
                 if (cellsWithContent.length === 0) {
