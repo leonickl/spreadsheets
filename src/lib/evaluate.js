@@ -50,9 +50,22 @@ export default function evaluate(table, cell) {
                 return null;
             }
 
-            return referencedCell.data?.[0] === "="
-                ? evaluateFormula(parse(referencedCell.data), referencedCell)
-                : referencedCell.data;
+            if (referencedCell.data?.[0] === "=") {
+                return evaluateFormula(
+                    parse(referencedCell.data),
+                    referencedCell
+                );
+            }
+
+            if (
+                referencedCell.type === "select" &&
+                !Array.isArray(referencedCell.data)
+            ) {
+                // fallback for invalid value
+                return [];
+            }
+
+            return referencedCell.data;
         }
 
         if (formula.type === "range") {

@@ -68,6 +68,10 @@ export function functions() {
     }
 
     function eq(x, y) {
+        if (Array.isArray(x) && Array.isArray(y)) {
+            return x.toString() === y.toString();
+        }
+
         return x == y;
     }
 
