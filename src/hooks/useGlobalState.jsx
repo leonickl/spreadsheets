@@ -49,6 +49,7 @@ export const GlobalStateProvider = ({ children }) => {
     );
 
     useEffect(() => {
+        setFile(emptyTable);
         fetchFile(uuid, setFile);
     }, [uuid]);
 
