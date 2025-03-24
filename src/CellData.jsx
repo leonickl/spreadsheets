@@ -15,6 +15,10 @@ export default function CellData({ cell }) {
     if (cell.data?.[0] === "=") {
         const result = evaluate(table, cell);
 
+        if (Array.isArray(result)) {
+            return <span className={classes}>[{result.join(", ")}]</span>;
+        }
+
         if (cell.type === "checkbox") {
             return (
                 <input

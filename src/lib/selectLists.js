@@ -17,10 +17,10 @@ export const colors = [
 export const gray = "bg-gray-300 text-gray-900";
 
 export function coloredItems(listName, lists = selectLists) {
-    const items = lists[listName];
+    const items = lists[listName] ?? [];
     const coloredItems = [];
 
-    for (let i = 0; i < items?.length; i++) {
+    for (let i = 0; i < items.length; i++) {
         coloredItems.push([items[i], colors[i % colors.length]]);
     }
 
