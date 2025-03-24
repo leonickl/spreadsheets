@@ -51,7 +51,7 @@ export function functions() {
         return Math.log(x);
     }
 
-    function test(test, yes, no) {
+    function if_(test, yes, no) {
         return test ? yes : no;
     }
 
@@ -79,6 +79,16 @@ export function functions() {
         return x ** y;
     }
 
+    function in_(needle, haystack) {
+        if (!Array.isArray(haystack)) {
+            return "{no array given}";
+        }
+
+        console.log(needle, haystack, haystack.includes(needle));
+
+        return haystack.includes(needle);
+    }
+
     // export
 
     return {
@@ -92,12 +102,13 @@ export function functions() {
         cos,
         exp,
         log,
-        if: test,
+        if: if_,
         and,
         or,
         not,
         eq,
         pow,
+        in: in_,
     };
 }
 
