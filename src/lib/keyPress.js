@@ -16,12 +16,31 @@ export default function keyPress({
     clipboard,
     setClipboard,
 }) {
-    function updateRange(from, to, props) {
-        for (let y = from.y; y <= to.y; y++) {
-            for (let x = from.x; x <= to.x; x++) {
-                updateTable(y, x, props);
+    function secondaryCursorCell() {
+        return (
+            find(table, secondaryCursor.y, secondaryCursor.x) ?? {
+                data: null,
+            }
+        );
+    }
+
+    function doWithRange(f, from, to) {
+        const [fromX, toX] = from.x < to.x ? [from.x, to.x] : [to.x, from.x];
+        const [fromY, toY] = from.y < to.y ? [from.y, to.y] : [to.y, from.y];
+
+        for (let y = fromY; y <= toY; y++) {
+            for (let x = fromX; x <= toX; x++) {
+                f(y, x);
             }
         }
+    }
+
+    function updateRange(from, to, props) {
+        doWithRange((y, x) => updateTable(y, x, props), from, to);
+    }
+
+    function removeRange(from, to) {
+        doWithRange((y, x) => removeFromTable(y, x), from, to);
     }
 
     function without(obj, props) {
@@ -70,7 +89,11 @@ export default function keyPress({
     }
 
     if (event.key === "Delete") {
-        removeFromTable(cursor.y, cursor.x);
+        if (secondaryCursor) {
+            removeRange(secondaryCursor, cursor);
+        } else {
+            removeFromTable(cursor.y, cursor.x);
+        }
     }
 
     if (event.key === "b" || event.key === "B") {
@@ -114,16 +137,10 @@ export default function keyPress({
     }
 
     if (event.key === "f" && cursor && secondaryCursor) {
-        const secondaryCursorCell = find(
-            table,
-            secondaryCursor.y,
-            secondaryCursor.x
-        ) ?? { data: null };
-
         updateRange(
             secondaryCursor,
             cursor,
-            without(secondaryCursorCell, ["x", "y"])
+            without(secondaryCursorCell(), ["x", "y"])
         );
     }
 
