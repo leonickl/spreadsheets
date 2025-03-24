@@ -9,6 +9,7 @@ import React, {
 import { emptyTable } from "../lib/emptyTable";
 import { find } from "../lib/data";
 import { deleteTable, fetchFile, storeTable } from "../lib/fetchFile";
+import { merge } from "../lib/merge";
 
 const GlobalStateContext = createContext();
 
@@ -18,7 +19,7 @@ export const GlobalStateProvider = ({ children }) => {
 
     const [clipboard, setClipboard] = useState();
 
-    const [client, setClient] = useState(
+    const [client] = useState(
         sessionStorage.getItem("client") ?? crypto.randomUUID()
     );
 
@@ -174,24 +175,26 @@ export const GlobalStateProvider = ({ children }) => {
     function updateTable(y, x, props, overwrite = false) {
         if (table.find((cell) => cell.y == y && cell.x == x)) {
             setTable((table) =>
-                table.map((cell) => {
-                    if (!(cell.y == y && cell.x == x)) {
-                        return cell;
-                    }
+                merge(
+                    table.map((cell) => {
+                        if (!(cell.y == y && cell.x == x)) {
+                            return cell;
+                        }
 
-                    const newCell = overwrite
-                        ? { x, y, ...props }
-                        : { ...cell, ...props };
+                        const newCell = overwrite
+                            ? { x, y, ...props }
+                            : { ...cell, ...props };
 
-                    onCellChange(newCell);
+                        onCellChange(newCell);
 
-                    return newCell;
-                })
+                        return newCell;
+                    })
+                )
             );
         } else {
             const newCell = { y, x, ...props };
 
-            setTable((table) => [...table, newCell]);
+            setTable((table) => merge(table, newCell));
 
             onCellChange(newCell);
         }

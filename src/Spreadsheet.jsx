@@ -5,6 +5,8 @@ import { dimensions, grid, letter } from "./lib/grid";
 export default function Spreadsheet() {
     const { table, cursor } = useGlobalState();
 
+    console.log({ table });
+
     const [, width] = dimensions(table, cursor);
 
     return (

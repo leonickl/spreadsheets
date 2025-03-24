@@ -3,8 +3,8 @@ import { Server } from "https";
 import { createServer } from "http";
 import fs from "fs";
 import cors from "cors";
-import { emptyTable } from "./src/lib/emptyTable.js";
 import { WebSocketServer } from "ws";
+import { merge } from "./src/lib/merge.js";
 
 ("use strict");
 
@@ -53,14 +53,10 @@ wss.on("connection", (ws) => {
             const file = JSON.parse(fs.readFileSync(path));
             const body = file.body ?? [];
 
-            const newBody = [
-                ...body.filter((c) => !(c.x == cell.x && c.y == cell.y)),
-                cell,
-            ];
-
-            const newFile = { ...file, body: newBody };
-
-            fs.writeFileSync(path, JSON.stringify(newFile));
+            fs.writeFileSync(
+                path,
+                JSON.stringify({ ...file, body: merge(body, cell) })
+            );
 
             console.log(
                 `client ${client} changed file ${uuid}: ${JSON.stringify(cell)}`
@@ -83,12 +79,10 @@ wss.on("connection", (ws) => {
 
             const file = JSON.parse(fs.readFileSync(path));
 
-            const newFile = { ...file, filename };
-
-            fs.writeFileSync(path, JSON.stringify(newFile));
+            fs.writeFileSync(path, JSON.stringify({ ...file, filename }));
 
             console.log(
-                `client ${client} changed filename ${uuid}: ${filename}`
+                `client ${client} changed filename of ${uuid}: ${filename}`
             );
 
             wss.clients.forEach((c) => {
@@ -108,12 +102,10 @@ wss.on("connection", (ws) => {
 
             const file = JSON.parse(fs.readFileSync(path));
 
-            const newFile = { ...file, selectLists };
-
-            fs.writeFileSync(path, JSON.stringify(newFile));
+            fs.writeFileSync(path, JSON.stringify({ ...file, selectLists }));
 
             console.log(
-                `client ${client} changed selectLists ${uuid}: ${JSON.stringify(
+                `client ${client} changed selectLists of ${uuid}: ${JSON.stringify(
                     selectLists
                 )}`
             );
@@ -142,11 +134,13 @@ app.use(
 
 app.use(express.json());
 
-app.get("/", function (req, res) {
+app.get("/", (req, res) => {
     res.send("Hello from backend server!");
 });
 
 app.get("/files", (req, res) => {
+    console.log("client read file list");
+
     res.json(
         fs
             .readdirSync("./data")
@@ -188,8 +182,13 @@ app.get("/files/:uuid", (req, res) => {
     const raw = fs.readFileSync(filename).toString();
 
     const json = JSON.parse(raw);
+    const newFile = { ...json, body: merge(json.body) }; // without duplicate cells
 
-    res.json({ ok: true, file: json });
+    fs.writeFileSync(filename, JSON.stringify(newFile));
+
+    console.log(`client read file ${file}`);
+
+    res.json({ ok: true, file: newFile });
 });
 
 app.post("/files/:uuid", (req, res) => {
@@ -206,7 +205,11 @@ app.post("/files/:uuid", (req, res) => {
         res.json({ ok: false, msg: "empty file given" });
     }
 
-    fs.writeFileSync(filename, JSON.stringify(req.body));
+    const newFile = { ...req.body, body: merge(req.body.body) };
+
+    fs.writeFileSync(filename, JSON.stringify(newFile));
+
+    console.log(`client wrote file ${file}`);
 
     res.json({ ok: true });
 });
@@ -222,6 +225,8 @@ app.delete("/files/:uuid", (req, res) => {
     const filename = "./data/" + file + ".json";
 
     fs.renameSync(filename, "./trash/" + file + ".json");
+
+    console.log(`client deleted file ${file}`);
 
     res.json({ ok: true });
 });
