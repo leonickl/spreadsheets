@@ -9,7 +9,7 @@ export function merge(table, cell) {
 
     for (const c of table) {
         if (unique.find(({ x, y }) => c.x == x && c.y == y)) {
-            console.log(`found duplicate at ${letter(c.x)} ${c.y}`);
+            console.debug(`found duplicate at ${letter(c.x)} ${c.y}`);
             continue;
         }
 

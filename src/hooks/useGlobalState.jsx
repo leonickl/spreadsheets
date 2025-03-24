@@ -159,7 +159,6 @@ export const GlobalStateProvider = ({ children }) => {
     }
 
     function setSelectLists(selectLists, pushToServer = true) {
-        console.log(selectLists);
         const lists = selectLists(file.selectLists ?? {});
 
         setFile((file) => ({

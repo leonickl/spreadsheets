@@ -1,7 +1,15 @@
 export function dimensions(table, cursor) {
     return [
-        Math.max(...table.map((data) => data.y), cursor.y),
-        Math.max(...table.map((data) => data.x), cursor.x),
+        Math.max(
+            ...table.filter((cell) => cell.data).map((data) => data.y),
+            cursor.y,
+            10
+        ),
+        Math.max(
+            ...table.filter((cell) => cell.data).map((data) => data.x),
+            cursor.x,
+            5
+        ),
     ];
 }
 
@@ -18,9 +26,11 @@ export function grid(table, cursor) {
         }
     }
 
-    table.forEach((cell) => {
-        grid[cell.y][cell.x] = cell;
-    });
+    table
+        .filter((cell) => cell.data)
+        .forEach((cell) => {
+            grid[cell.y][cell.x] = cell;
+        });
 
     return grid;
 }
