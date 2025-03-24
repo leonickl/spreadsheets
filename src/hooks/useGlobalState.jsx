@@ -10,6 +10,7 @@ import { emptyTable } from "../lib/emptyTable";
 import { find } from "../lib/data";
 import { deleteTable, fetchFile, storeTable } from "../lib/fetchFile";
 import { merge } from "../lib/merge";
+import { now } from "../lib/date";
 
 const GlobalStateContext = createContext();
 
@@ -181,8 +182,8 @@ export const GlobalStateProvider = ({ children }) => {
                         }
 
                         const newCell = overwrite
-                            ? { x, y, ...props }
-                            : { ...cell, ...props };
+                            ? { x, y, ...props, date: now() }
+                            : { ...cell, ...props, date: now() };
 
                         onCellChange(newCell);
 
@@ -191,7 +192,7 @@ export const GlobalStateProvider = ({ children }) => {
                 )
             );
         } else {
-            const newCell = { y, x, ...props };
+            const newCell = { y, x, ...props, date: now() };
 
             setTable((table) => merge(table, newCell));
 
@@ -202,11 +203,15 @@ export const GlobalStateProvider = ({ children }) => {
     }
 
     function removeFromTable(y, x) {
+        const date = now();
+
         setTable((table) =>
-            table.map((cell) => (cell.y == y && cell.x == x ? { x, y } : cell))
+            table.map((cell) =>
+                cell.y == y && cell.x == x ? { x, y, date } : cell
+            )
         );
 
-        onCellChange({ x, y });
+        onCellChange({ x, y, date });
 
         setChanged(true);
     }
