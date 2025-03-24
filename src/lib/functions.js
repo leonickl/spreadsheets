@@ -84,8 +84,6 @@ export function functions() {
             return "{no array given}";
         }
 
-        console.log(needle, haystack, haystack.includes(needle));
-
         return haystack.includes(needle);
     }
 
