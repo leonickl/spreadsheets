@@ -61,6 +61,10 @@ export default function App() {
     }, [cursor]);
 
     useEffect(() => {
+        console.debug(cell);
+    }, [cursor]);
+
+    useEffect(() => {
         const handleKeyPress = (event) => {
             if (showFileList || showSelectLists) {
                 return;
