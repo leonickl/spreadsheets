@@ -87,6 +87,33 @@ export function functions() {
         return haystack.includes(needle);
     }
 
+    function len(array) {
+        if (!Array.isArray(array)) {
+            return "{no array given}";
+        }
+
+        return array.length;
+    }
+
+    function merge(...arrays) {
+        let result = [];
+
+        for (const array of arrays) {
+            // propagate error messages
+            if (typeof array === "string" && array[0] === "{") {
+                return array;
+            }
+
+            if (!Array.isArray(array)) {
+                return "{no array given}";
+            }
+
+            result = [...result, ...array];
+        }
+
+        return result;
+    }
+
     // export
 
     return {
@@ -107,6 +134,8 @@ export function functions() {
         eq,
         pow,
         in: in_,
+        len,
+        merge,
     };
 }
 
