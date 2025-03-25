@@ -31,7 +31,6 @@ export default function App() {
         updateTable,
         closeTable,
         removeFromTable,
-        saveFile,
         filename,
         setFilename,
         changed,
@@ -118,15 +117,6 @@ export default function App() {
                     onClick={() => setShowFileList((curr) => !curr)}
                 >
                     <FolderFill width={16} />
-                </button>
-
-                <button
-                    className={`grid items-center justify-center font-bold px-5 ${
-                        changed ? "bg-orange-700" : "bg-gray-700"
-                    } hover:bg-purple-700 rounded text-3xl opacity-80`}
-                    onClick={saveFile}
-                >
-                    <FloppyFill width={16} />
                 </button>
 
                 <button

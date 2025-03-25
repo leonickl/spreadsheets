@@ -240,14 +240,6 @@ export const GlobalStateProvider = ({ children }) => {
         setChanged(false);
     }
 
-    async function saveFile() {
-        const json = JSON.stringify(file, null, 2);
-
-        await storeFile(uuid, json);
-
-        setChanged(false);
-    }
-
     function openTable(newUuid) {
         setUuid(newUuid);
         setShowFileList(false);
@@ -282,7 +274,6 @@ export const GlobalStateProvider = ({ children }) => {
                 updateTable,
                 closeTable,
                 removeFromTable,
-                saveFile,
                 openTable,
                 filename,
                 setFilename,
