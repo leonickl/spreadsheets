@@ -10,6 +10,9 @@ import CellInput from "./CellInput";
 import FileList from "./FileList";
 import SelectLists from "./SelectLists";
 import {
+    CloudCheckFill,
+    CloudFill,
+    CloudSlashFill,
     FloppyFill,
     FolderFill,
     Trash3Fill,
@@ -44,6 +47,8 @@ export default function App() {
         connected,
         showSelectLists,
         setShowSelectLists,
+        realtime,
+        setRealtime,
     } = useGlobalState();
 
     useEffect(() => {
@@ -139,13 +144,26 @@ export default function App() {
                     <UiChecksGrid width={16} />
                 </button>
 
-                <div
-                    className={`h-10 w-10 px-5 py-2 rounded-md border ${
-                        connected
-                            ? "bg-green-500 border-green-900"
-                            : "bg-red-500 border-red-900"
-                    }`}
-                ></div>
+                <button
+                    className={`grid items-center justify-center font-bold px-5 ${
+                        realtime
+                            ? connected
+                                ? "bg-green-500 border-green-900"
+                                : "bg-red-500 border-red-900"
+                            : "bg-orange-500 border-orange-900"
+                    } hover:opacity-60 rounded text-3xl opacity-80`}
+                    onClick={() => setRealtime((old) => !old)}
+                >
+                    {realtime ? (
+                        connected ? (
+                            <CloudCheckFill width={16} />
+                        ) : (
+                            <CloudFill width={16} />
+                        )
+                    ) : (
+                        <CloudSlashFill width={16} />
+                    )}
+                </button>
 
                 <input
                     value={filename}
