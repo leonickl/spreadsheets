@@ -74,10 +74,6 @@ export const GlobalStateProvider = ({ children }) => {
     }, [uuid, client]); // Reconnect when file or user changes
 
     useEffect(() => {
-        if (!changed) {
-            return;
-        }
-
         const timeout = setTimeout(() => {
             sync().then(() => setChanged(false));
         }, 5000);

@@ -138,7 +138,7 @@ export default function App() {
                         connected
                             ? "bg-green-500 border-green-900"
                             : "bg-red-500 border-red-900"
-                    } hover:opacity-60 rounded text-3xl opacity-80`}
+                    } hover:bg-yellow-500 rounded text-3xl opacity-80`}
                     onClick={() => sync()}
                 >
                     {connected ? (
