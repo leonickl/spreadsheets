@@ -75,7 +75,8 @@ export function mergeFiles(file1, file2) {
 }
 
 export function repair(file) {
-    if (!isObject()) {
+    if (!isObject(file)) {
+        console.error(file);
         throw new Error("file is not an object");
     }
 

@@ -4,87 +4,13 @@ import { createServer } from "http";
 import fs from "fs";
 import cors from "cors";
 import { WebSocketServer } from "ws";
-import { mergeCell, mergeFiles, mergeTables, repair } from "./src/lib/merge.js";
-import { notnull } from "./src/lib/notnull.js";
+import { mergeCell, mergeFiles } from "./src/lib/merge.js";
 import { isObject } from "./src/lib/object.js";
+import { exists, list, read, write, trash } from "./lib/file.js";
+import { handleError, handleErrorWs } from "./lib/handleError.js";
+import { sendToSubscribers } from "./lib/ws.js";
 
 ("use strict");
-
-function validUuid(uuid) {
-    return /^[a-z0-9-]+$/.test(uuid);
-}
-
-function path(uuid) {
-    return "./data/" + uuid + ".json";
-}
-
-function exists(uuid) {
-    return fs.existsSync(path(uuid));
-}
-
-async function read(uuid) {
-    if (!validUuid(uuid)) {
-        throw new Error(`${uuid} is not a valid uuid`);
-    }
-
-    if (!fs.existsSync(path(uuid))) {
-        throw new Error(`file ${uuid} does not exist`);
-    }
-
-    const raw = fs.readFileSync(path).toString();
-
-    if (!raw) {
-        throw new Error(`file ${uuid} is empty`);
-    }
-
-    let parsed = null;
-
-    try {
-        parsed = JSON.parse(raw);
-    } catch {
-        throw new Error(`file ${uuid} has invalid json`);
-    }
-
-    let repaired = null;
-
-    try {
-        repaired = repair(parsed);
-    } catch (e) {
-        throw new Error(`file ${uuid} is invalid: ${e.message}`);
-    }
-
-    if (!repaired) {
-        throw new Error(`repaired file ${uuid} is empty: ${repaired}`);
-    }
-
-    return repaired;
-}
-
-async function write(uuid, file) {
-    if (!validUuid(uuid)) {
-        throw new Error(`${uuid} is not a valid uuid`);
-    }
-
-    let repaired;
-
-    try {
-        repaired = repair(file);
-    } catch (e) {
-        throw new Error(`file ${uuid} is invalid: ${e.message}`);
-    }
-
-    fs.writeFileSync(path(uuid), JSON.stringify(repaired));
-
-    return read(uuid);
-}
-
-async function trash(uuid) {
-    if (!validUuid(uuid)) {
-        throw new Error(`${uuid} is not a valid uuid`);
-    }
-
-    fs.renameSync(path(uuid), "./trash/" + uuid + ".json");
-}
 
 if (!fs.existsSync("./data")) {
     fs.mkdirSync("./data");
@@ -119,111 +45,68 @@ wss.on("connection", (ws) => {
         if (cell && client && uuid) {
             read(uuid)
                 .then((file) => {
-                    const body = mergeCell(file.body, cell);
-
-                    write(uuid, { ...file, body })
-                        .then((file) => {
-                            console.log(
-                                `client ${client} changed file ${uuid}: ${JSON.stringify(
-                                    cell
-                                )}`
-                            );
-
-                            wss.clients.forEach((c) => {
-                                if (
-                                    clients.get(c) === uuid &&
-                                    c.readyState === 1
-                                ) {
-                                    c.send(
-                                        JSON.stringify({ uuid, cell, client })
-                                    );
-                                }
-                            });
-
-                            ws.send({ ok: true, file });
-                        })
-                        .catch((e) => {
-                            console.error(e.message);
-                            ws.send({ ok: false, msg: e.message });
-                        });
+                    write(uuid, { ...file, body: mergeCell(file.body, cell) });
                 })
-                .catch((e) => {
-                    console.error(e.message);
-                });
+                .then((file) => {
+                    console.log(
+                        `client ${client} changed file ${uuid}: ${JSON.stringify(
+                            cell
+                        )}`
+                    );
+
+                    sendToSubscribers(wss, clients, uuid, {
+                        uuid,
+                        cell,
+                        client,
+                    });
+
+                    ws.send({ ok: true, file });
+                })
+                .catch(handleErrorWs(ws));
         }
 
         if (filename && client && uuid) {
             read(uuid)
                 .then((file) => {
-                    write(uuid, { ...file, filename })
-                        .then((file) => {
-                            console.log(
-                                `client ${client} changed filename of ${uuid}: ${filename}`
-                            );
-
-                            wss.clients.forEach((c) => {
-                                if (
-                                    clients.get(c) === uuid &&
-                                    c.readyState === 1
-                                ) {
-                                    c.send(
-                                        JSON.stringify({
-                                            uuid,
-                                            filename,
-                                            client,
-                                        })
-                                    );
-                                }
-                            });
-
-                            ws.send({ ok: true, file });
-                        })
-                        .catch((e) => {
-                            console.error(e.message);
-                            ws.send({ ok: false, msg: e.message });
-                        });
+                    write(uuid, { ...file, filename });
                 })
-                .catch((e) => {
-                    console.error(e.message);
-                });
+                .then((file) => {
+                    console.log(
+                        `client ${client} changed filename of ${uuid}: ${filename}`
+                    );
+
+                    sendToSubscribers(wss, clients, uuid, {
+                        uuid,
+                        filename,
+                        client,
+                    });
+
+                    ws.send({ ok: true, file });
+                })
+                .catch(handleErrorWs(ws));
         }
 
         if (selectLists && client && uuid) {
             read(uuid)
                 .then((file) => {
-                    write(uuid, { ...file, selectLists })
-                        .then((file) => {
-                            console.log(
-                                `client ${client} changed selectLists of ${uuid}: ${JSON.stringify(
-                                    selectLists
-                                )}`
-                            );
-
-                            wss.clients.forEach((c) => {
-                                if (
-                                    clients.get(c) === uuid &&
-                                    c.readyState === 1
-                                ) {
-                                    c.send(
-                                        JSON.stringify({
-                                            uuid,
-                                            selectLists,
-                                            client,
-                                        })
-                                    );
-                                }
-                            });
-
-                            ws.send({ ok: true, file });
-                        })
-                        .catch((e) => {
-                            console.error(e.message);
-                            ws.send({ ok: false, msg: e.message });
-                        });
+                    write(uuid, { ...file, selectLists });
                 })
-                .catch((e) => {
-                    console.error(e.message);
-                });
+                .then((file) => {
+                    console.log(
+                        `client ${client} changed selectLists of ${uuid}: ${JSON.stringify(
+                            selectLists
+                        )}`
+                    );
+
+                    sendToSubscribers(wss, clients, uuid, {
+                        uuid,
+                        selectLists,
+                        client,
+                    });
+
+                    ws.send({ ok: true, file });
+                })
+                .catch(handleErrorWs(ws));
         }
     });
 
@@ -250,31 +133,9 @@ app.get("/", (req, res) => {
 app.get("/files", (req, res) => {
     console.log("client read file list");
 
-    res.json(
-        fs
-            .readdirSync("./data")
-            .map((name) => {
-                const uuid = name.replace(".json", "");
-
-                let file;
-
-                try {
-                    file = read(uuid);
-                } catch (e) {
-                    console.error(e.message);
-                    return;
-                }
-
-                const content = file.body.filter((cell) => notnull(cell.data));
-
-                if (content.length === 0) {
-                    return;
-                }
-
-                return [uuid, file.filename, content.length];
-            })
-            .filter(notnull)
-    );
+    list()
+        .then((files) => res.send(files))
+        .catch(handleError(res));
 });
 
 app.get("/files/:uuid", (req, res) => {
@@ -285,10 +146,7 @@ app.get("/files/:uuid", (req, res) => {
             console.log(`client read file ${uuid}`);
             res.json({ ok: true, file });
         })
-        .catch((e) => {
-            console.error(e.message);
-            res.json({ ok: false, msg: e.message });
-        });
+        .catch(handleError(res));
 });
 
 app.post("/files/:uuid", (req, res) => {
@@ -306,28 +164,18 @@ app.post("/files/:uuid", (req, res) => {
                 console.log(`client wrote file ${uuid}`);
                 res.json({ ok: true, file });
             })
-            .catch((e) => {
-                console.error(e.message);
-                res.json({ ok: false, msg: e.message });
-            });
+            .catch(handleError(res));
     }
 
     read(uuid)
         .then((old) => {
-            write(uuid, mergeFiles(old, req.body))
-                .then((file) => {
-                    console.log(`client merged file ${uuid}`);
-                    res.json({ ok: true, file });
-                })
-                .catch((e) => {
-                    console.error(e.message);
-                    res.json({ ok: false, msg: e.message });
-                });
+            write(uuid, mergeFiles(old, req.body));
         })
-        .catch((e) => {
-            console.error(e.message);
-            res.json({ ok: false, msg: e.message });
-        });
+        .then((file) => {
+            console.log(`client merged file ${uuid}`);
+            res.json({ ok: true, file });
+        })
+        .catch(handleError(res));
 });
 
 app.delete("/files/:uuid", (req, res) => {
@@ -336,13 +184,9 @@ app.delete("/files/:uuid", (req, res) => {
     trash(uuid)
         .then(() => {
             console.log(`client deleted file ${uuid}`);
-
             res.json({ ok: true });
         })
-        .catch((e) => {
-            console.error(e.message);
-            res.json({ ok: false, msg: e.message });
-        });
+        .catch(handleError(res));
 });
 
 const expressServer = server.listen(3000, function () {

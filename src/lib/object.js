@@ -11,7 +11,5 @@ export default function obj(object) {
 }
 
 export function isObject(object) {
-    return (
-        typeof object === "object" && JSON.stringify(object).charAt(0) === "{"
-    );
+    return typeof object === "object" && !Array.isArray(object);
 }
