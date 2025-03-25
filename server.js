@@ -4,8 +4,9 @@ import { createServer } from "http";
 import fs from "fs";
 import cors from "cors";
 import { WebSocketServer } from "ws";
-import { merge } from "./src/lib/merge.js";
+import { mergeCell } from "./src/lib/merge.js";
 import { notnull } from "./src/lib/notnull.js";
+import { mergeTables } from "./src/lib/merge.js";
 
 ("use strict");
 
@@ -52,11 +53,13 @@ wss.on("connection", (ws) => {
             }
 
             const file = JSON.parse(fs.readFileSync(path));
-            const body = file.body ?? [];
 
             fs.writeFileSync(
                 path,
-                JSON.stringify({ ...file, body: merge(body, cell) })
+                JSON.stringify({
+                    ...file,
+                    body: mergeCell(file.body ?? [], cell),
+                })
             );
 
             console.log(
@@ -148,8 +151,8 @@ app.get("/files", (req, res) => {
             .map((uuid) => {
                 const file = JSON.parse(fs.readFileSync("./data/" + uuid));
 
-                const cellsWithContent = (file?.body ?? []).filter(
-                    (cell) => notnull(cell.data)
+                const cellsWithContent = (file?.body ?? []).filter((cell) =>
+                    notnull(cell.data)
                 );
 
                 if (cellsWithContent.length === 0) {
@@ -183,7 +186,7 @@ app.get("/files/:uuid", (req, res) => {
     const raw = fs.readFileSync(filename).toString();
 
     const json = JSON.parse(raw);
-    const newFile = { ...json, body: merge(json.body) }; // without duplicate cells
+    const newFile = { ...json, body: mergeCell(json.body ?? []) }; // without duplicate cells
 
     fs.writeFileSync(filename, JSON.stringify(newFile));
 
@@ -206,11 +209,25 @@ app.post("/files/:uuid", (req, res) => {
         res.json({ ok: false, msg: "empty file given" });
     }
 
-    const newFile = { ...req.body, body: merge(req.body.body) };
+    const newFile = req.body;
 
-    fs.writeFileSync(filename, JSON.stringify(newFile));
+    if (fs.existsSync(filename)) {
+        const old = JSON.parse(fs.readFileSync(filename).toString());
 
-    console.log(`client wrote file ${file}`);
+        const merged = mergeTables(old.body ?? [], newFile.body);
+
+        console.log(old.body, newFile.body, merged);
+
+        fs.writeFileSync(
+            filename,
+            JSON.stringify({ ...newFile, body: merged })
+        );
+
+        console.log(`client merged file ${file}`);
+    } else {
+        fs.writeFileSync(filename, JSON.stringify(newFile));
+        console.log(`client wrote file ${file}`);
+    }
 
     res.json({ ok: true });
 });

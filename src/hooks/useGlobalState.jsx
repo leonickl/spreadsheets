@@ -9,7 +9,7 @@ import React, {
 import { emptyTable } from "../lib/emptyTable";
 import { find } from "../lib/data";
 import { deleteTable, fetchFile, storeTable } from "../lib/fetchFile";
-import { merge } from "../lib/merge";
+import { mergeCell } from "../lib/merge";
 import { now } from "../lib/date";
 
 const GlobalStateContext = createContext();
@@ -103,14 +103,17 @@ export const GlobalStateProvider = ({ children }) => {
             }
 
             if (cell && uuid === forUuid) {
+                console.debug("received new cell:", cell);
                 updateTable(cell.y, cell.x, cell, true);
             }
 
             if (filename && uuid === forUuid) {
+                console.debug("received new filename:", filename);
                 setFilename(filename, false);
             }
 
             if (selectLists && uuid === forUuid) {
+                console.debug("received new selectLists:", selectLists);
                 setSelectLists(() => selectLists, false);
             }
         };
@@ -146,6 +149,7 @@ export const GlobalStateProvider = ({ children }) => {
         }
 
         socket.send(JSON.stringify({ cell, client, uuid }));
+        console.debug("sent cell:", cell);
     }
 
     function setTable(table) {
@@ -157,6 +161,7 @@ export const GlobalStateProvider = ({ children }) => {
 
         if (pushToServer) {
             socket.send(JSON.stringify({ filename, client, uuid }));
+            console.debug("sent filename:", filename);
         }
     }
 
@@ -170,13 +175,14 @@ export const GlobalStateProvider = ({ children }) => {
 
         if (pushToServer) {
             socket.send(JSON.stringify({ selectLists: lists, client, uuid }));
+            console.debug("sent selectLists:", selectLists);
         }
     }
 
     function updateTable(y, x, props, overwrite = false) {
         if (table.find((cell) => cell.y == y && cell.x == x)) {
             setTable((table) =>
-                merge(
+                mergeCell(
                     table.map((cell) => {
                         if (!(cell.y == y && cell.x == x)) {
                             return cell;
@@ -195,7 +201,7 @@ export const GlobalStateProvider = ({ children }) => {
         } else {
             const newCell = { y, x, ...props, date: now() };
 
-            setTable((table) => merge(table, newCell));
+            setTable((table) => mergeCell(table, newCell));
 
             onCellChange(newCell);
         }
