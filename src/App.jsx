@@ -31,7 +31,7 @@ export default function App() {
         updateTable,
         closeTable,
         removeFromTable,
-        saveTable,
+        saveFile,
         filename,
         setFilename,
         changed,
@@ -47,8 +47,7 @@ export default function App() {
         connected,
         showSelectLists,
         setShowSelectLists,
-        realtime,
-        setRealtime,
+        sync,
     } = useGlobalState();
 
     useEffect(() => {
@@ -125,7 +124,7 @@ export default function App() {
                     className={`grid items-center justify-center font-bold px-5 ${
                         changed ? "bg-orange-700" : "bg-gray-700"
                     } hover:bg-purple-700 rounded text-3xl opacity-80`}
-                    onClick={saveTable}
+                    onClick={saveFile}
                 >
                     <FloppyFill width={16} />
                 </button>
@@ -146,20 +145,14 @@ export default function App() {
 
                 <button
                     className={`grid items-center justify-center font-bold px-5 ${
-                        realtime
-                            ? connected
-                                ? "bg-green-500 border-green-900"
-                                : "bg-red-500 border-red-900"
-                            : "bg-orange-500 border-orange-900"
+                        connected
+                            ? "bg-green-500 border-green-900"
+                            : "bg-red-500 border-red-900"
                     } hover:opacity-60 rounded text-3xl opacity-80`}
-                    onClick={() => setRealtime((old) => !old)}
+                    onClick={() => sync()}
                 >
-                    {realtime ? (
-                        connected ? (
-                            <CloudCheckFill width={16} />
-                        ) : (
-                            <CloudFill width={16} />
-                        )
+                    {connected ? (
+                        <CloudCheckFill width={16} />
                     ) : (
                         <CloudSlashFill width={16} />
                     )}

@@ -8,8 +8,8 @@ import React, {
 } from "react";
 import { emptyTable } from "../lib/emptyTable";
 import { find } from "../lib/data";
-import { deleteTable, fetchFile, storeTable } from "../lib/fetchFile";
-import { mergeCell } from "../lib/merge";
+import { deleteTable, fetchFile, storeFile } from "../lib/fetchFile";
+import { mergeCell, mergeTables } from "../lib/merge";
 import { now } from "../lib/date";
 
 const GlobalStateContext = createContext();
@@ -50,7 +50,7 @@ export const GlobalStateProvider = ({ children }) => {
 
     useEffect(() => {
         setFile(emptyTable);
-        fetchFile(uuid, setFile);
+        fetchFile(uuid).then(setFile);
     }, [uuid]);
 
     useEffect(() => {
@@ -79,7 +79,7 @@ export const GlobalStateProvider = ({ children }) => {
         }
 
         const timeout = setTimeout(() => {
-            saveTable().then(() => setChanged(false));
+            sync().then(() => setChanged(false));
         }, 5000);
 
         return () => clearTimeout(timeout);
@@ -240,10 +240,10 @@ export const GlobalStateProvider = ({ children }) => {
         setChanged(false);
     }
 
-    async function saveTable() {
+    async function saveFile() {
         const json = JSON.stringify(file, null, 2);
 
-        await storeTable(uuid, json);
+        await storeFile(uuid, json);
 
         setChanged(false);
     }
@@ -258,6 +258,20 @@ export const GlobalStateProvider = ({ children }) => {
         deleteTable(uuid);
     }
 
+    async function sync() {
+        const newFile = await fetchFile(uuid);
+
+        const merged = mergeTables(table, newFile.body);
+
+        setTable(() => merged);
+
+        const json = JSON.stringify({ ...file, body: merged }, null, 2);
+
+        await storeFile(uuid, json);
+
+        setChanged(false);
+    }
+
     return (
         <GlobalStateContext.Provider
             value={{
@@ -268,7 +282,7 @@ export const GlobalStateProvider = ({ children }) => {
                 updateTable,
                 closeTable,
                 removeFromTable,
-                saveTable,
+                saveFile,
                 openTable,
                 filename,
                 setFilename,
@@ -288,6 +302,7 @@ export const GlobalStateProvider = ({ children }) => {
                 file,
                 selectLists,
                 setSelectLists,
+                sync,
             }}
         >
             {children}

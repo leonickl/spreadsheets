@@ -1,6 +1,6 @@
 const base = "http://localhost:3000/files/";
 
-export async function fetchFile(uuid, setFile) {
+export async function fetchFile(uuid) {
     const stored = await fetch(base + uuid);
 
     const { ok, msg, file } = await stored.json();
@@ -14,10 +14,10 @@ export async function fetchFile(uuid, setFile) {
         return;
     }
 
-    setFile(file);
+    return file;
 }
 
-export async function storeTable(uuid, body) {
+export async function storeFile(uuid, body) {
     fetch(base + uuid, {
         headers: {
             Accept: "application/json",
