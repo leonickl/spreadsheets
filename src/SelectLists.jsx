@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useGlobalState } from "./hooks/useGlobalState";
 import { PlusCircleFill, XCircleFill } from "react-bootstrap-icons";
+import obj from "./lib/object";
 
 export default function SelectLists() {
     const { setShowSelectLists, selectLists, setSelectLists } =
@@ -17,11 +18,19 @@ export default function SelectLists() {
     }
 
     function removeItem(name) {
-        setSelectLists((elems) =>
-            Object.fromEntries(
-                Object.entries(elems).filter(([n]) => n !== name)
-            )
-        );
+        setSelectLists((elems) => obj(elems).filter(([n]) => n !== name));
+    }
+
+    function strToArray(options) {
+        return options.split(",").map((item) => item.trim());
+    }
+
+    function arrayToStr(options) {
+        return options.join(", ");
+    }
+
+    function changeItem(list, name, options) {
+        return obj(list).map(([n, i]) => [n, n === name ? options : i]);
     }
 
     return (
@@ -33,7 +42,7 @@ export default function SelectLists() {
 
             <div className="flex-col gap-2 max-h-[70%] bg-gray-800 border border-gray-700 shadow-md p-5 rounded overflow-scroll z-30">
                 <div className="m-5 flex flex-col gap-10">
-                    {Object.entries(selectLists ?? {}).map(([name, items]) => (
+                    {obj(selectLists ?? {}).export(([name, items]) => (
                         <div className="flex flex-row gap-5" key={name}>
                             <input
                                 value={name}
@@ -42,8 +51,16 @@ export default function SelectLists() {
                             />
 
                             <input
-                                value={items.join(", ")}
-                                readOnly
+                                value={arrayToStr(items)}
+                                onChange={(e) =>
+                                    setSelectLists((old) =>
+                                        changeItem(
+                                            old,
+                                            name,
+                                            strToArray(e.target.value)
+                                        )
+                                    )
+                                }
                                 className="bg-gray-800 w-80 px-5 py-2 rounded-md border border-gray-400 focus:border-blue-700 focus:outline-blue-700"
                             />
 
@@ -64,13 +81,9 @@ export default function SelectLists() {
                         />
 
                         <input
-                            value={items.join(", ")}
+                            value={arrayToStr(items)}
                             onChange={(e) =>
-                                setItems(
-                                    e.target.value
-                                        .split(",")
-                                        .map((item) => item.trim())
-                                )
+                                setItems(strToArray(e.target.value))
                             }
                             className="bg-gray-800 w-80 px-5 py-2 rounded-md border border-gray-400 focus:border-blue-700 focus:outline-blue-700"
                         />

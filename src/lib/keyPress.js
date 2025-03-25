@@ -1,5 +1,6 @@
 import { find } from "./data";
 import { notnull } from "./notnull";
+import obj from "./object";
 
 export default function keyPress({
     event,
@@ -42,12 +43,6 @@ export default function keyPress({
 
     function removeRange(from, to) {
         doWithRange((y, x) => removeFromTable(y, x), from, to);
-    }
-
-    function without(obj, props) {
-        return Object.fromEntries(
-            Object.entries(obj).filter(([key]) => !props.includes(key))
-        );
     }
 
     // also if in input mode
@@ -141,7 +136,7 @@ export default function keyPress({
         updateRange(
             secondaryCursor,
             cursor,
-            without(secondaryCursorCell(), ["x", "y"])
+            obj(secondaryCursorCell()).without(["x", "y"])
         );
     }
 
@@ -160,7 +155,7 @@ export default function keyPress({
         updateRange(
             { x: last.x, y: last.y + 1 },
             cursor,
-            without(last, ["x", "y"])
+            obj(last).without(["x", "y"])
         );
     }
 
@@ -174,6 +169,11 @@ export default function keyPress({
     }
 
     if (event.key === "v" || event.key === "V") {
-        updateTable(cursor.y, cursor.x, without(clipboard, ["x", "y"]), true);
+        updateTable(
+            cursor.y,
+            cursor.x,
+            obj(clipboard).without(["x", "y"]),
+            true
+        );
     }
 }
