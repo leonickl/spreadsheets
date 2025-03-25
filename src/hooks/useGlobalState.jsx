@@ -73,6 +73,18 @@ export const GlobalStateProvider = ({ children }) => {
         };
     }, [uuid, client]); // Reconnect when file or user changes
 
+    useEffect(() => {
+        if (!changed) {
+            return;
+        }
+
+        const timeout = setTimeout(() => {
+            saveTable().then(() => setChanged(false));
+        }, 5000);
+
+        return () => clearTimeout(timeout);
+    }, [changed]);
+
     function connectWebSocket() {
         const ws = new WebSocket("ws://localhost:3000/ws");
 
