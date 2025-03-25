@@ -4,14 +4,84 @@ import { createServer } from "http";
 import fs from "fs";
 import cors from "cors";
 import { WebSocketServer } from "ws";
-import { mergeCell } from "./src/lib/merge.js";
+import { mergeCell, mergeFiles, mergeTables, repair } from "./src/lib/merge.js";
 import { notnull } from "./src/lib/notnull.js";
-import { mergeTables } from "./src/lib/merge.js";
+import { isObject } from "./src/lib/object.js";
 
 ("use strict");
 
 function validUuid(uuid) {
     return /^[a-z0-9-]+$/.test(uuid);
+}
+
+function path(uuid) {
+    return "./data/" + uuid + ".json";
+}
+
+function exists(uuid) {
+    return fs.existsSync(path(uuid));
+}
+
+async function read(uuid) {
+    if (!validUuid(uuid)) {
+        throw new Error(`${uuid} is not a valid uuid`);
+    }
+
+    if (!fs.existsSync(path(uuid))) {
+        throw new Error(`file ${uuid} does not exist`);
+    }
+
+    const raw = fs.readFileSync(path).toString();
+
+    if (!raw) {
+        throw new Error(`file ${uuid} is empty`);
+    }
+
+    let parsed = null;
+
+    try {
+        parsed = JSON.parse(raw);
+    } catch {
+        throw new Error(`file ${uuid} has invalid json`);
+    }
+
+    let repaired = null;
+
+    try {
+        repaired = repair(parsed);
+    } catch (e) {
+        throw new Error(`file ${uuid} is invalid: ${e.message}`);
+    }
+
+    if (!repaired) {
+        throw new Error(`repaired file ${uuid} is empty: ${repaired}`);
+    }
+
+    return repaired;
+}
+
+async function write(uuid, file) {
+    if (!validUuid(uuid)) {
+        throw new Error(`${uuid} is not a valid uuid`);
+    }
+
+    let repaired;
+
+    try {
+        repaired = repair(file);
+    } catch (e) {
+        throw new Error(`file ${uuid} is invalid: ${e.message}`);
+    }
+
+    fs.writeFileSync(path(uuid), JSON.stringify(repaired));
+}
+
+async function trash(uuid) {
+    if (!validUuid(uuid)) {
+        throw new Error(`${uuid} is not a valid uuid`);
+    }
+
+    fs.renameSync(path(uuid), "./trash/" + uuid + ".json");
 }
 
 if (!fs.existsSync("./data")) {
@@ -45,22 +115,11 @@ wss.on("connection", (ws) => {
         }
 
         if (cell && client && uuid) {
-            const path = "./data/" + uuid + ".json";
+            const file = read(uuid);
 
-            if (!fs.existsSync(path)) {
-                console.error(`file ${uuid} does not exist`);
-                return;
-            }
+            const body = mergeCell(file.body, cell);
 
-            const file = JSON.parse(fs.readFileSync(path));
-
-            fs.writeFileSync(
-                path,
-                JSON.stringify({
-                    ...file,
-                    body: mergeCell(file.body ?? [], cell),
-                })
-            );
+            write(uuid, { ...file, body });
 
             console.log(
                 `client ${client} changed file ${uuid}: ${JSON.stringify(cell)}`
@@ -74,16 +133,13 @@ wss.on("connection", (ws) => {
         }
 
         if (filename && client && uuid) {
-            const path = "./data/" + uuid + ".json";
+            const file = read(uuid);
 
-            if (!fs.existsSync(path)) {
-                console.error(`file ${uuid} does not exist`);
+            if (!file) {
                 return;
             }
 
-            const file = JSON.parse(fs.readFileSync(path));
-
-            fs.writeFileSync(path, JSON.stringify({ ...file, filename }));
+            write(uuid, { ...file, filename });
 
             console.log(
                 `client ${client} changed filename of ${uuid}: ${filename}`
@@ -97,16 +153,13 @@ wss.on("connection", (ws) => {
         }
 
         if (selectLists && client && uuid) {
-            const path = "./data/" + uuid + ".json";
+            const file = read(uuid);
 
-            if (!fs.existsSync(path)) {
-                console.error(`file ${uuid} does not exist`);
+            if (!file) {
                 return;
             }
 
-            const file = JSON.parse(fs.readFileSync(path));
-
-            fs.writeFileSync(path, JSON.stringify({ ...file, selectLists }));
+            write(uuid, { ...file, selectLists });
 
             console.log(
                 `client ${client} changed selectLists of ${uuid}: ${JSON.stringify(
@@ -148,101 +201,80 @@ app.get("/files", (req, res) => {
     res.json(
         fs
             .readdirSync("./data")
-            .map((uuid) => {
-                const file = JSON.parse(fs.readFileSync("./data/" + uuid));
+            .map((name) => {
+                const uuid = name.replace(".json", "");
 
-                const cellsWithContent = (file?.body ?? []).filter((cell) =>
-                    notnull(cell.data)
-                );
+                const file = read(uuid);
 
-                if (cellsWithContent.length === 0) {
-                    return null;
+                if (!file) {
+                    return;
                 }
 
-                return [
-                    uuid.replace(".json", ""),
-                    file?.filename,
-                    cellsWithContent.length,
-                ];
+                const content = file.body.filter((cell) => notnull(cell.data));
+
+                if (content.length === 0) {
+                    return;
+                }
+
+                return [uuid, file.filename, content.length];
             })
-            .filter((x) => x)
+            .filter(notnull)
     );
 });
 
 app.get("/files/:uuid", (req, res) => {
-    const file = req.params.uuid;
+    const uuid = req.params.uuid;
 
-    if (!validUuid(file)) {
-        res.json({ ok: false, msg: "invalid file name" });
+    const file = read(uuid);
+
+    if (!file) {
         return;
     }
 
-    const filename = "./data/" + file + ".json";
+    console.log(`client read file ${uuid}`);
 
-    if (!fs.existsSync(filename)) {
-        return { ok: false, msg: "file does not exist" };
-    }
-
-    const raw = fs.readFileSync(filename).toString();
-
-    const json = JSON.parse(raw);
-    const newFile = { ...json, body: mergeCell(json.body ?? []) }; // without duplicate cells
-
-    fs.writeFileSync(filename, JSON.stringify(newFile));
-
-    console.log(`client read file ${file}`);
-
-    res.json({ ok: true, file: newFile });
+    res.json({ ok: true, file });
 });
 
 app.post("/files/:uuid", (req, res) => {
-    const file = req.params.uuid;
+    const uuid = req.params.uuid;
 
-    if (!validUuid(file)) {
-        res.json({ ok: false, msg: "invalid file name" });
+    if (!req.body || !isObject(req.body)) {
+        console.error("invalid body given");
         return;
     }
 
-    const filename = "./data/" + file + ".json";
-
-    if (!req.body) {
-        res.json({ ok: false, msg: "empty file given" });
+    if (!exists(uuid)) {
+        write(uuid, req.body);
+        console.log(`client wrote file ${uuid}`);
+        return;
     }
 
-    const newFile = req.body;
+    const old = read(uuid);
 
-    if (fs.existsSync(filename)) {
-        const old = JSON.parse(fs.readFileSync(filename).toString());
-
-        const merged = mergeTables(old.body ?? [], newFile.body);
-
-        fs.writeFileSync(
-            filename,
-            JSON.stringify({ ...newFile, body: merged })
-        );
-
-        console.log(`client merged file ${file}`);
-    } else {
-        fs.writeFileSync(filename, JSON.stringify(newFile));
-        console.log(`client wrote file ${file}`);
+    if (!old) {
+        return;
     }
 
-    res.json({ ok: true });
+    write(uuid, mergeFiles(old, req.body));
+
+    console.log(`client merged file ${uuid}`);
+
+    const file = read(uuid);
+
+    if (!file) {
+        return;
+    }
+
+    res.json({ ok: true, file });
 });
 
 app.delete("/files/:uuid", (req, res) => {
-    const file = req.params.uuid;
+    const uuid = req.params.uuid;
 
-    if (!validUuid(file)) {
-        res.json({ ok: false, msg: "invalid file name" });
-        return;
-    }
+    trash(uuid);
 
-    const filename = "./data/" + file + ".json";
-
-    fs.renameSync(filename, "./trash/" + file + ".json");
-
-    console.log(`client deleted file ${file}`);
+    console.log(`client deleted file ${uuid}`);
 
     res.json({ ok: true });
 });
