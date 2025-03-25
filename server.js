@@ -216,8 +216,6 @@ app.post("/files/:uuid", (req, res) => {
 
         const merged = mergeTables(old.body ?? [], newFile.body);
 
-        console.log(old.body, newFile.body, merged);
-
         fs.writeFileSync(
             filename,
             JSON.stringify({ ...newFile, body: merged })
