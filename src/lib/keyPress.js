@@ -120,14 +120,6 @@ export default function keyPress({
         });
     }
 
-    if (event.key === "Shift") {
-        if (secondaryCursor) {
-            setSecondaryCursor();
-        } else {
-            setSecondaryCursor(cursor);
-        }
-    }
-
     if (event.key === "Escape") {
         setSecondaryCursor();
     }
