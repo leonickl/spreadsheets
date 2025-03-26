@@ -146,7 +146,7 @@ export default function App() {
                 </button>
 
                 <input
-                    value={filename}
+                    value={filename ?? ""}
                     onChange={(e) => setFilename(e.target.value)}
                     className="bg-gray-800 min-h-10 w-max px-5 py-2 rounded-md border border-gray-400 focus:border-blue-700 focus:outline-blue-700"
                 />
