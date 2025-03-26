@@ -18,6 +18,8 @@ export const GlobalStateProvider = ({ children }) => {
     const [secondaryCursor, setSecondaryCursor] = useState();
     const [cursor, setCursor] = useState({ x: 0, y: 0 });
 
+    const [mouseIsDown, setMouseIsDown] = useState(false);
+
     const [clipboard, setClipboard] = useState();
 
     const [client] = useState(
@@ -293,6 +295,8 @@ export const GlobalStateProvider = ({ children }) => {
                 selectLists,
                 setSelectLists,
                 sync,
+                mouseIsDown,
+                setMouseIsDown,
             }}
         >
             {children}
