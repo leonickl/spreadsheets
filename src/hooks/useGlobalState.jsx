@@ -65,10 +65,7 @@ export const GlobalStateProvider = ({ children }) => {
         connectWebSocket();
 
         return () => {
-            if (socket) {
-                socket.close();
-            }
-
+            socket && socket.close();
             clearTimeout(heartbeatTimeout.current);
         };
     }, [uuid, client]); // Reconnect when file or user changes
@@ -173,10 +170,9 @@ export const GlobalStateProvider = ({ children }) => {
     }
 
     function setFilename(filename, pushToServer = true) {
-        setFile((file) => ({
-            ...file,
-            filename: { date: now(), data: filename },
-        }));
+        filename = { date: now(), data: filename };
+
+        setFile((file) => ({ ...file, filename }));
 
         if (pushToServer) {
             socketSend({ filename, client, uuid });
@@ -185,15 +181,14 @@ export const GlobalStateProvider = ({ children }) => {
     }
 
     function setSelectLists(selectLists, pushToServer = true) {
-        const lists = selectLists(file.selectLists?.data ?? {});
+        selectLists = selectLists(file.selectLists?.data ?? {});
 
-        setFile((file) => ({
-            ...file,
-            selectLists: { date: now(), data: lists },
-        }));
+        selectLists = { date: now(), data: selectLists };
+
+        setFile((file) => ({ ...file, selectLists }));
 
         if (pushToServer) {
-            socketSend({ selectLists: lists, client, uuid });
+            socketSend({ selectLists, client, uuid });
             console.debug("sent selectLists:", selectLists);
         }
     }
