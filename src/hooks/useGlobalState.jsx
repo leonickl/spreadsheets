@@ -9,7 +9,7 @@ import React, {
 import { emptyTable } from "../lib/emptyTable";
 import { find } from "../lib/data";
 import { deleteTable, fetchFile, storeFile } from "../lib/fetchFile";
-import { mergeCell, mergeTables } from "../lib/merge";
+import { mergeCell } from "../lib/merge";
 import { now } from "../lib/date";
 
 const GlobalStateContext = createContext();
@@ -40,8 +40,8 @@ export const GlobalStateProvider = ({ children }) => {
     const inputRef = useRef();
 
     const table = useMemo(() => file?.body, [file]);
-    const filename = useMemo(() => file?.filename, [file]);
-    const selectLists = useMemo(() => file?.selectLists ?? {}, [file]);
+    const filename = useMemo(() => file?.filename?.data, [file]);
+    const selectLists = useMemo(() => file?.selectLists?.data ?? {}, [file]);
 
     const cell = useMemo(
         () => find(table, cursor.y, cursor.x) ?? cursor,
@@ -138,6 +138,14 @@ export const GlobalStateProvider = ({ children }) => {
         setSocket(ws);
     }
 
+    function socketSend(data) {
+        if (socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify(data));
+        } else {
+            console.error("socket closed. cannot send");
+        }
+    }
+
     function resetHeartbeat() {
         console.debug("heartbeat reset");
         clearTimeout(heartbeatTimeout.current);
@@ -152,11 +160,11 @@ export const GlobalStateProvider = ({ children }) => {
 
     function onCellChange(cell) {
         if (!socket) {
-            console.error("socket uninitialized");
+            console.debug("socket uninitialized");
             return;
         }
 
-        socket.send(JSON.stringify({ cell, client, uuid }));
+        socketSend({ cell, client, uuid });
         console.debug("sent cell:", cell);
     }
 
@@ -165,24 +173,27 @@ export const GlobalStateProvider = ({ children }) => {
     }
 
     function setFilename(filename, pushToServer = true) {
-        setFile((file) => ({ ...file, filename }));
+        setFile((file) => ({
+            ...file,
+            filename: { date: now(), data: filename },
+        }));
 
         if (pushToServer) {
-            socket.send(JSON.stringify({ filename, client, uuid }));
+            socketSend({ filename, client, uuid });
             console.debug("sent filename:", filename);
         }
     }
 
     function setSelectLists(selectLists, pushToServer = true) {
-        const lists = selectLists(file.selectLists ?? {});
+        const lists = selectLists(file.selectLists?.data ?? {});
 
         setFile((file) => ({
             ...file,
-            selectLists: lists,
+            selectLists: { date: now(), data: lists },
         }));
 
         if (pushToServer) {
-            socket.send(JSON.stringify({ selectLists: lists, client, uuid }));
+            socketSend({ selectLists: lists, client, uuid });
             console.debug("sent selectLists:", selectLists);
         }
     }
@@ -247,17 +258,14 @@ export const GlobalStateProvider = ({ children }) => {
     }
 
     async function sync() {
-        const newFile = await fetchFile(uuid);
-
-        const merged = mergeTables(table, newFile.body);
-
-        setTable(() => merged);
-
-        const json = JSON.stringify({ ...file, body: merged }, null, 2);
-
-        await storeFile(uuid, json);
-
-        setChanged(false);
+        storeFile(uuid, file).then(({ ok, file, msg }) => {
+            if (ok && file) {
+                setFile(file);
+                setChanged(false);
+            } else {
+                console.error({ ok, msg, file });
+            }
+        });
     }
 
     return (

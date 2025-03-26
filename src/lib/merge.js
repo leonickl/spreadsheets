@@ -8,7 +8,7 @@ import { isObject } from "./object.js";
 export function mergeCell(table, cell) {
     if (!Array.isArray(table)) {
         console.error(table);
-        throw new Error();
+        throw new Error("table is not an array");
     }
 
     const grid = [];
@@ -45,22 +45,22 @@ export function mergeTables(table1, table2) {
 }
 
 export function mergeObjects(object1, object2) {
-    const { date1, data1 } = object1;
-    const { date2, data2 } = object2;
+    const { date: date1, data: data1 } = object1;
+    const { date: date2, data: data2 } = object2;
 
     if (!date1) {
-        return { date2, data2 };
+        return { date: date2, data: data2 };
     }
 
     if (!date2) {
-        return { date1, data1 };
+        return { date: date1, data: data1 };
     }
 
     if (date1 < date2) {
-        return { date2, data2 };
+        return { date: date2, data: data2 };
     }
 
-    return { date1, data1 };
+    return { date: date1, data: data1 };
 }
 
 export function mergeFiles(file1, file2) {
@@ -70,7 +70,7 @@ export function mergeFiles(file1, file2) {
     return {
         filename: mergeObjects(file1.filename, file2.filename),
         selectLists: mergeObjects(file1.selectLists, file2.selectLists),
-        body: mergeTables(file1.table, file2.table),
+        body: mergeTables(file1.body, file2.body),
     };
 }
 
@@ -87,7 +87,7 @@ export function repair(file) {
     }
 
     if (typeof filename === "string") {
-        filename = { date: now(), data: filename };
+        filename = { data: filename };
     }
 
     if (!selectLists) {
@@ -95,7 +95,7 @@ export function repair(file) {
     }
 
     if (Array.isArray(selectLists)) {
-        selectLists = { date: now(), data: selectLists };
+        selectLists = { data: selectLists };
     }
 
     if (!isObject(selectLists)) {

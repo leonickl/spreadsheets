@@ -11,9 +11,7 @@ import FileList from "./FileList";
 import SelectLists from "./SelectLists";
 import {
     CloudCheckFill,
-    CloudFill,
     CloudSlashFill,
-    FloppyFill,
     FolderFill,
     Trash3Fill,
     UiChecksGrid,
@@ -33,7 +31,6 @@ export default function App() {
         removeFromTable,
         filename,
         setFilename,
-        changed,
         inputRef,
         secondaryCursor,
         setSecondaryCursor,

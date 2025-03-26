@@ -17,15 +17,15 @@ export async function fetchFile(uuid) {
     return file;
 }
 
-export async function storeFile(uuid, body) {
-    fetch(base + uuid, {
+export async function storeFile(uuid, file) {
+    return fetch(base + uuid, {
         headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
         },
         method: "POST",
-        body,
-    });
+        body: JSON.stringify(file),
+    }).then((res) => res.json());
 }
 
 export async function fetchFileList() {

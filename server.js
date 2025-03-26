@@ -33,22 +33,30 @@ wss.on("connection", (ws) => {
     ws.send(JSON.stringify({ status: "alive" }));
 
     ws.on("message", (message) => {
-        const { cell, client, status, uuid, filename, selectLists } =
-            JSON.parse(message.toString());
+        let json = null;
+
+        try {
+            json = JSON.parse(message.toString());
+        } catch (e) {
+            handleErrorWs(ws)(e);
+            return;
+        }
+
+        const { cell, client, status, uuid, filename, selectLists } = json;
 
         if (status === "hello" && uuid) {
             clients.set(ws, uuid);
 
-            console.log(`client ${client} joined file ${uuid}`);
+            console.debug(`client ${client} joined file ${uuid}`);
         }
 
         if (cell && client && uuid) {
             read(uuid)
+                .then((file) =>
+                    write(uuid, { ...file, body: mergeCell(file.body, cell) })
+                )
                 .then((file) => {
-                    write(uuid, { ...file, body: mergeCell(file.body, cell) });
-                })
-                .then((file) => {
-                    console.log(
+                    console.debug(
                         `client ${client} changed file ${uuid}: ${JSON.stringify(
                             cell
                         )}`
@@ -60,18 +68,16 @@ wss.on("connection", (ws) => {
                         client,
                     });
 
-                    ws.send({ ok: true, file });
+                    ws.send(JSON.stringify({ ok: true, file }));
                 })
                 .catch(handleErrorWs(ws));
         }
 
         if (filename && client && uuid) {
             read(uuid)
+                .then((file) => write(uuid, { ...file, filename }))
                 .then((file) => {
-                    write(uuid, { ...file, filename });
-                })
-                .then((file) => {
-                    console.log(
+                    console.debug(
                         `client ${client} changed filename of ${uuid}: ${filename}`
                     );
 
@@ -81,18 +87,16 @@ wss.on("connection", (ws) => {
                         client,
                     });
 
-                    ws.send({ ok: true, file });
+                    ws.send(JSON.stringify({ ok: true, file }));
                 })
                 .catch(handleErrorWs(ws));
         }
 
         if (selectLists && client && uuid) {
             read(uuid)
+                .then((file) => write(uuid, { ...file, selectLists }))
                 .then((file) => {
-                    write(uuid, { ...file, selectLists });
-                })
-                .then((file) => {
-                    console.log(
+                    console.debug(
                         `client ${client} changed selectLists of ${uuid}: ${JSON.stringify(
                             selectLists
                         )}`
@@ -104,14 +108,14 @@ wss.on("connection", (ws) => {
                         client,
                     });
 
-                    ws.send({ ok: true, file });
+                    ws.send(JSON.stringify({ ok: true, file }));
                 })
                 .catch(handleErrorWs(ws));
         }
     });
 
     ws.on("close", () => {
-        console.log("client left");
+        console.debug("client left");
     });
 });
 
@@ -131,7 +135,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/files", (req, res) => {
-    console.log("client read file list");
+    console.debug("client read file list");
 
     list()
         .then((files) => res.send(files))
@@ -141,9 +145,20 @@ app.get("/files", (req, res) => {
 app.get("/files/:uuid", (req, res) => {
     const uuid = req.params.uuid;
 
+    if (!exists(uuid)) {
+        write(uuid, {})
+            .then((file) => {
+                console.debug(`client read file ${uuid}`);
+                res.json({ ok: true, file });
+            })
+            .catch(handleError(res));
+
+        return;
+    }
+
     read(uuid)
         .then((file) => {
-            console.log(`client read file ${uuid}`);
+            console.debug(`client read file ${uuid}`);
             res.json({ ok: true, file });
         })
         .catch(handleError(res));
@@ -153,26 +168,25 @@ app.post("/files/:uuid", (req, res) => {
     const uuid = req.params.uuid;
 
     if (!req.body || !isObject(req.body)) {
-        console.error("invalid body given");
-        res.json({ ok: false, msg: "invalid body given" });
+        handleError(res)({ message: "invalid body given" });
         return;
     }
 
     if (!exists(uuid)) {
         write(uuid, req.body)
             .then((file) => {
-                console.log(`client wrote file ${uuid}`);
+                console.debug(`client wrote file ${uuid}`);
                 res.json({ ok: true, file });
             })
             .catch(handleError(res));
+
+        return;
     }
 
     read(uuid)
-        .then((old) => {
-            write(uuid, mergeFiles(old, req.body));
-        })
+        .then((old) => write(uuid, mergeFiles(old, req.body)))
         .then((file) => {
-            console.log(`client merged file ${uuid}`);
+            console.debug(`client merged file ${uuid}`);
             res.json({ ok: true, file });
         })
         .catch(handleError(res));
@@ -183,7 +197,7 @@ app.delete("/files/:uuid", (req, res) => {
 
     trash(uuid)
         .then(() => {
-            console.log(`client deleted file ${uuid}`);
+            console.debug(`client deleted file ${uuid}`);
             res.json({ ok: true });
         })
         .catch(handleError(res));
