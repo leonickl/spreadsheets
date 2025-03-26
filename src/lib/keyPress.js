@@ -1,5 +1,5 @@
 import { find } from "./data";
-import { notnull } from "./notnull";
+import { notempty } from "./notnull";
 import obj from "./object";
 
 export default function keyPress({
@@ -38,7 +38,7 @@ export default function keyPress({
     }
 
     function updateRange(from, to, props) {
-        doWithRange((y, x) => updateTable(y, x, props), from, to);
+        doWithRange((y, x) => updateTable(y, x, props, true), from, to);
     }
 
     function removeRange(from, to) {
@@ -59,12 +59,12 @@ export default function keyPress({
         if (isFocused) {
             setCursor(({ x, y }) => limit({ x, y: y + 1 }));
         } else {
-            inputRef.current.focus();
+            inputRef.current?.focus();
         }
     }
 
     if (event.key === "Escape") {
-        inputRef.current.blur();
+        inputRef.current?.blur();
     }
 
     if (event.key === "Tab") {
@@ -141,11 +141,12 @@ export default function keyPress({
     }
 
     if (event.key === "f" && cursor && !secondaryCursor) {
+        // skip empty cells, except unchecked select boxes
         const column = table
             .filter(
                 (cell) =>
                     cell.x == cursor.x &&
-                    notnull(cell.data) &&
+                    (notempty(cell.data) || cell.type === "select") &&
                     cell.y < cursor.y
             )
             .sort((one, other) => one.y - other.y);

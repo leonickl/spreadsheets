@@ -7,8 +7,10 @@ export default function Cell({ y, x, cell }) {
     const { cursor, setCursor, secondaryCursor, inputRef } = useGlobalState();
 
     const focused = cursor && cursor.y == y && cursor.x == x;
+
     const secondaryFocused =
         secondaryCursor && secondaryCursor.y == y && secondaryCursor.x == x;
+
     const focusRange =
         secondaryCursor &&
         between(x, cursor.x, secondaryCursor.x) &&
@@ -26,6 +28,7 @@ export default function Cell({ y, x, cell }) {
         cell.type === "special" && isURL(cell.data) && "special type-url",
         cell.type === "money" && "special type-money",
         cell.type === "percent" && "special type-percent",
+        cell.type === "select" && "special type-select",
         cell.data?.[0] === "=" && "special type-formula",
     ];
 
@@ -33,7 +36,7 @@ export default function Cell({ y, x, cell }) {
         <td
             className={classes.filter((c) => c).join(" ")}
             onMouseDown={() => setCursor({ y, x })}
-            onDoubleClick={() => inputRef.current.focus()}
+            onDoubleClick={() => inputRef.current?.focus()}
         >
             <div className={`min-h-9 min-w-24 px-5 py-2 select-none`}>
                 <CellData cell={cell} />

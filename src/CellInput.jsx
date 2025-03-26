@@ -5,9 +5,11 @@ import { notnull } from "./lib/notnull";
 export default function CellInput() {
     const { inputRef, cursor, cell, updateTable } = useGlobalState();
 
-    return cell.type === "select" ? (
-        <CellInputSelect />
-    ) : (
+    if (cell.type === "select") {
+        return <CellInputSelect />;
+    }
+
+    return (
         <input
             ref={inputRef}
             disabled={!cursor}

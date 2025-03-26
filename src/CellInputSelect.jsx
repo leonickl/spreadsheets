@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useGlobalState } from "./hooks/useGlobalState";
 import { colors } from "./lib/selectLists";
 import SelectItem from "./SelectItem";
@@ -5,10 +6,17 @@ import SelectItem from "./SelectItem";
 export default function CellInputSelect() {
     const { cell, updateTable, cursor, selectLists } = useGlobalState();
 
+    useEffect(() => {
+        if (!Array.isArray(cell.data)) {
+            updateTable(cursor.y, cursor.x, {
+                data: [],
+            });
+        }
+    }, [cell, cursor]);
+
     if (!Array.isArray(cell.data)) {
-        updateTable(cursor.y, cursor.x, {
-            data: [],
-        });
+        console.debug("cell data is no array yet");
+        return <p>loading...</p>;
     }
 
     const selectList = selectLists[cell.selectList] ?? [];

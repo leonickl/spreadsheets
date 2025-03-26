@@ -41,3 +41,7 @@
 .type-percent::after {
     content: "%";
 }
+
+.type-select::after {
+    content: "Ξ";
+}
