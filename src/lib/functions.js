@@ -2,7 +2,10 @@ export function functions() {
     // decorators
 
     function floatList(f) {
-        return (list) => (Array.isArray(list) ? f(list.map(parseFloat)) : list);
+        return (list) =>
+            Array.isArray(list)
+                ? f(list.map(parseFloat).filter((n) => !isNaN(n)))
+                : list;
     }
 
     function listOr(f) {
@@ -92,7 +95,7 @@ export function functions() {
             return "{no array given}";
         }
 
-        return array.length;
+        return array.filter((x) => x).length;
     }
 
     function merge(...arrays) {
@@ -111,7 +114,7 @@ export function functions() {
             result = [...result, ...array];
         }
 
-        return result;
+        return result.flat().filter((x) => x);
     }
 
     // export
