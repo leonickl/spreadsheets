@@ -2,6 +2,8 @@
 
 This application provides a collaborative browser-based spreadsheets-client.
 
+![](./public/demo.png)
+
 ## Setup
 
 -   required nodejs and npm to be installed
