@@ -18,3 +18,8 @@ This application provides a collaborative browser-based spreadsheets-client.
 -   run `npm run start` to start frontend and backend together
 -   to start only the frontend, run `npm run dev`
 -   and for only the backend, run `node server.js`
+
+## Manual
+
+### Key Shortcuts
+
