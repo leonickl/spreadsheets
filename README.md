@@ -2,6 +2,9 @@
 
 This application provides a collaborative browser-based spreadsheets-client.
 
+> [!WARNING]
+> This application is still in development. Sudden data loss can occur at any time. Please make backups of your data directory!
+
 ![](./public/demo.png)
 
 ## Setup
