@@ -1,12 +1,15 @@
-# React + Vite
+# Spreadsheets
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This application provides a collaborative browser-based spreadsheets-client.
 
-Currently, two official plugins are available:
+## Setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+-   required nodejs and npm to be installed
+-   navigate to project directory
+-   run `npm install` to install dependencies
 
-## Expanding the ESLint configuration
+## Starting
 
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+-   run `npm run start` to start frontend and backend together
+-   to start only the frontend, run `npm run dev`
+-   and for only the backend, run `node server.js`
