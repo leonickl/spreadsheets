@@ -1,4 +1,3 @@
-import { now } from "./date.js";
 import { isObject } from "./object.js";
 
 /**
@@ -6,6 +5,8 @@ import { isObject } from "./object.js";
  * if there is no cell given, duplicates are still removed.
  */
 export function mergeCell(table, cell) {
+    console.debug("merge cell into table", cell);
+
     if (!Array.isArray(table)) {
         console.error(table);
         throw new Error("table is not an array");
@@ -45,21 +46,27 @@ export function mergeTables(table1, table2) {
 }
 
 export function mergeObjects(object1, object2) {
+    console.debug("merge objects - input", object1, object2);
+
     const { date: date1, data: data1 } = object1;
     const { date: date2, data: data2 } = object2;
 
     if (!date1) {
+        console.debug("merge objects - result", { date: date2, data: data2 });
         return { date: date2, data: data2 };
     }
 
     if (!date2) {
+        console.debug("merge objects - result", { date: date1, data: data1 });
         return { date: date1, data: data1 };
     }
 
     if (date1 < date2) {
+        console.debug("merge objects - result", { date: date2, data: data2 });
         return { date: date2, data: data2 };
     }
 
+    console.debug("merge objects - result", { date: date1, data: data1 });
     return { date: date1, data: data1 };
 }
 

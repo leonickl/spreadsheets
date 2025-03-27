@@ -9,7 +9,7 @@ import React, {
 import { emptyTable } from "../lib/emptyTable";
 import { find } from "../lib/data";
 import { deleteTable, fetchFile, storeFile } from "../lib/fetchFile";
-import { mergeCell } from "../lib/merge";
+import { mergeCell, mergeFiles } from "../lib/merge";
 import { now } from "../lib/date";
 
 const GlobalStateContext = createContext();
@@ -52,7 +52,7 @@ export const GlobalStateProvider = ({ children }) => {
 
     useEffect(() => {
         setFile(emptyTable);
-        fetchFile(uuid).then(setFile);
+        fetchFile(uuid).then(updateFile);
     }, [uuid]);
 
     useEffect(() => {
@@ -167,6 +167,10 @@ export const GlobalStateProvider = ({ children }) => {
         console.debug("sent cell:", cell);
     }
 
+    function updateFile(newFile) {
+        setFile((oldFile) => mergeFiles(oldFile, newFile));
+    }
+
     function setTable(table) {
         setFile((file) => ({ ...file, body: table(file.body) }));
     }
@@ -240,8 +244,7 @@ export const GlobalStateProvider = ({ children }) => {
     }
 
     function closeTable() {
-        setFile(emptyTable);
-        setChanged(false);
+        setUuid(crypto.randomUUID());
     }
 
     function openTable(newUuid) {
@@ -257,7 +260,7 @@ export const GlobalStateProvider = ({ children }) => {
     async function sync() {
         storeFile(uuid, file).then(({ ok, file, msg }) => {
             if (ok && file) {
-                setFile(file);
+                updateFile(file);
                 setChanged(false);
             } else {
                 console.error({ ok, msg, file });

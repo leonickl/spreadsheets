@@ -58,7 +58,7 @@ export default function evaluate(table, cell) {
             }
 
             if (!referencedCell) {
-                console.warn("cell not found", table, { x, y });
+                console.warn("cell not found", table, { x, y }, formula);
                 return null;
             }
 

@@ -1,5 +1,5 @@
 import { find } from "./data";
-import { notempty } from "./notnull";
+import { notempty, notnull } from "./notnull";
 import obj from "./object";
 
 export default function keyPress({
@@ -138,7 +138,8 @@ export default function keyPress({
             .filter(
                 (cell) =>
                     cell.x == cursor.x &&
-                    (notempty(cell.data) || cell.type === "select") &&
+                    notnull(cell.data) &&
+                    cell.data !== "" &&
                     cell.y < cursor.y
             )
             .sort((one, other) => one.y - other.y);
