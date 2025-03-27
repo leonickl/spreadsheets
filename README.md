@@ -9,7 +9,7 @@ This application provides a collaborative browser-based spreadsheets-client.
 
 ## Setup
 
--   required nodejs and npm to be installed
+-   requires nodejs and npm to be installed
 -   navigate to project directory
 -   run `npm install` to install dependencies
 
