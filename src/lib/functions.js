@@ -1,3 +1,5 @@
+import { notnull } from "./notnull";
+
 export function functions() {
     // decorators
 
@@ -95,7 +97,7 @@ export function functions() {
             return "{no array given}";
         }
 
-        return array.filter((x) => x).length;
+        return array.filter((x) => notnull(x)).length;
     }
 
     function merge(...arrays) {
