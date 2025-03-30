@@ -1,3 +1,4 @@
+import { isnull } from "./notnull.js";
 import { isObject } from "./object.js";
 
 /**
@@ -82,6 +83,10 @@ export function mergeFiles(file1, file2) {
 }
 
 export function repair(file) {
+    if (isnull(file)) {
+        file = {}
+    }
+
     if (!isObject(file)) {
         console.error(file);
         throw new Error("file is not an object");
